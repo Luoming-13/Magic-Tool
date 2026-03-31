@@ -1,0 +1,60 @@
+/* =====================
+   Magic Cutting - Styles
+   游戏化样式
+   ===================== */
+
+/* ===== Card Section ===== */
+.card-section {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 3px solid var(--pixel-border-divider);
+}
+
+.card-section:last-child {
+    border-bottom: none;
+}
+
+.card-section__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--pixel-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 1rem;
+}
+
+/* ===== Upload Zone in Card ===== */
+.card-section .upload-zone {
+    border-color: var(--pixel-border);
+    background: var(--pixel-bg-card);
+}
+
+.card-section .upload-zone:hover {
+    border-color: var(--pixel-primary);
+    background: rgba(255, 107, 53, 0.02);
+}
+
+/* ===== Control Group in Card ===== */
+.card-section .control-group__input {
+    background: var(--pixel-bg-card);
+    border-color: var(--pixel-border);
+}
+
+.card-section .control-group__input:focus {
+    border-color: var(--pixel-primary);
+}
+
+/* ===== Slider in Card ===== */
+.card-section .slider {
+    background: var(--pixel-border);
+}
+
+/* ===== Radio Group in Card ===== */
+.card-section .radio-label input[type="radio"] {
+    accent-color: var(--pixel-primary);
+}
+
+/* ===== Button Group in Card ===== */
+.card-section .btn-group {
+    margin-top: 1rem;
+}

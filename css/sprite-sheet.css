@@ -169,7 +169,7 @@
 /* ===== Mode Navigation ===== */
 .mode-nav {
     display: flex;
-    border-bottom: 3px solid var(--pixel-border);
+    border-bottom: 3px solid var(--pixel-border-divider);
 }
 
 .mode-nav__btn {
@@ -211,7 +211,7 @@
 /* ===== Card Section ===== */
 .card-section {
     padding: 1.25rem 1.5rem;
-    border-bottom: 3px solid var(--pixel-border);
+    border-bottom: 3px solid var(--pixel-border-divider);
 }
 
 .card-section:last-child {
@@ -370,7 +370,7 @@
     padding: 1rem;
     background: var(--pixel-bg-main);
     border-radius: var(--pixel-radius-md);
-    border: 3px dashed var(--pixel-border);
+    border: 3px dashed var(--pixel-border-dashed);
 }
 
 .image-list-placeholder {
@@ -464,7 +464,7 @@
     padding: 1rem;
     background: var(--pixel-bg-main);
     border-radius: var(--pixel-radius-md);
-    border: 3px dashed var(--pixel-border);
+    border: 3px dashed var(--pixel-border-dashed);
 }
 
 .split-grid-item {
@@ -519,7 +519,7 @@
 /* ===== Split Grid Placeholder ===== */
 .split-grid-item--placeholder {
     background: var(--pixel-bg-main);
-    border: 3px dashed var(--pixel-border);
+    border: 3px dashed var(--pixel-border-dashed);
     cursor: default;
     box-shadow: none;
 }

@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/cutting.css">
     <link rel="stylesheet" href="../css/share.css">
 </head>
 <body>
@@ -61,102 +62,104 @@
     <main class="main-container">
         <!-- 左侧控制面板 -->
         <aside class="control-panel">
-            <!-- 上传区域 -->
-            <section class="upload-section">
-                <h2 class="section-title">上传图片</h2>
-                <div class="upload-zone" id="uploadZone">
-                    <div class="upload-zone__content">
-                        <svg class="upload-zone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        <p class="upload-zone__text">拖拽图片到此处</p>
-                        <p class="upload-zone__subtext">或点击选择文件</p>
-                        <p class="upload-zone__formats">支持 JPG, PNG, GIF, WebP, BMP</p>
+            <div class="control-card">
+                <!-- 上传区域 -->
+                <div class="card-section">
+                    <h3 class="card-section__title">上传图片</h3>
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-zone__content">
+                            <svg class="upload-zone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p class="upload-zone__text">拖拽图片到此处</p>
+                            <p class="upload-zone__subtext">或点击选择文件</p>
+                            <p class="upload-zone__formats">支持 JPG, PNG, GIF, WebP, BMP</p>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" hidden>
                     </div>
-                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <div class="image-info" id="imageInfo" style="display: none;">
+                        <span class="image-info__name" id="imageName"></span>
+                        <span class="image-info__size" id="imageSize"></span>
+                    </div>
                 </div>
-                <div class="image-info" id="imageInfo" style="display: none;">
-                    <span class="image-info__name" id="imageName"></span>
-                    <span class="image-info__size" id="imageSize"></span>
-                </div>
-            </section>
 
-            <!-- 切割设置 -->
-            <section class="settings-section">
-                <h2 class="section-title">切割设置</h2>
-                <div class="control-group">
-                    <label class="control-group__label">
-                        <span>横向切割数</span>
-                        <div class="input-with-slider">
-                            <input type="number" id="colsInput" class="control-group__input" value="3" min="1" max="50">
-                            <input type="range" id="colsSlider" class="slider" value="3" min="1" max="10">
-                        </div>
-                    </label>
-                    <label class="control-group__label">
-                        <span>纵向切割数</span>
-                        <div class="input-with-slider">
-                            <input type="number" id="rowsInput" class="control-group__input" value="3" min="1" max="50">
-                            <input type="range" id="rowsSlider" class="slider" value="3" min="1" max="10">
-                        </div>
-                    </label>
-                    <label class="control-group__label">
-                        <span>滑块上限</span>
-                        <div class="slider-limit">
-                            <input type="number" id="sliderMaxInput" class="control-group__input slider-limit__input" value="10" min="1" max="50">
-                        </div>
-                    </label>
+                <!-- 切割设置 -->
+                <div class="card-section">
+                    <h3 class="card-section__title">切割设置</h3>
+                    <div class="control-group">
+                        <label class="control-group__label">
+                            <span>横向切割数</span>
+                            <div class="input-with-slider">
+                                <input type="number" id="colsInput" class="control-group__input" value="3" min="1" max="50">
+                                <input type="range" id="colsSlider" class="slider" value="3" min="1" max="10">
+                            </div>
+                        </label>
+                        <label class="control-group__label">
+                            <span>纵向切割数</span>
+                            <div class="input-with-slider">
+                                <input type="number" id="rowsInput" class="control-group__input" value="3" min="1" max="50">
+                                <input type="range" id="rowsSlider" class="slider" value="3" min="1" max="10">
+                            </div>
+                        </label>
+                        <label class="control-group__label">
+                            <span>滑块上限</span>
+                            <div class="slider-limit">
+                                <input type="number" id="sliderMaxInput" class="control-group__input slider-limit__input" value="10" min="1" max="50">
+                            </div>
+                        </label>
+                    </div>
+                    <div class="piece-size-info" id="pieceSizeInfo">
+                        <span>切割块尺寸: --</span>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn--secondary" id="previewBtn" disabled>
+                            <span>预览切割线</span>
+                        </button>
+                        <button class="btn btn--primary" id="cutBtn" disabled>
+                            <span>执行切割</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="piece-size-info" id="pieceSizeInfo">
-                    <span>切割块尺寸: --</span>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn--secondary" id="previewBtn" disabled>
-                        <span>预览切割线</span>
-                    </button>
-                    <button class="btn btn--primary" id="cutBtn" disabled>
-                        <span>执行切割</span>
-                    </button>
-                </div>
-            </section>
 
-            <!-- 导出选项 -->
-            <section class="export-section">
-                <h2 class="section-title">导出选项</h2>
-                <div class="control-group">
-                    <label class="control-group__label">
-                        <span>导出格式</span>
-                        <div class="radio-group">
-                            <label class="radio-label">
-                                <input type="radio" name="format" value="png" checked>
-                                <span>PNG</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="format" value="jpg">
-                                <span>JPG</span>
-                            </label>
-                        </div>
-                    </label>
-                    <label class="control-group__label">
-                        <span>文件名前缀</span>
-                        <input type="text" id="prefixInput" class="control-group__input" value="piece" placeholder="piece">
-                    </label>
+                <!-- 导出选项 -->
+                <div class="card-section">
+                    <h3 class="card-section__title">导出选项</h3>
+                    <div class="control-group">
+                        <label class="control-group__label">
+                            <span>导出格式</span>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="format" value="png" checked>
+                                    <span>PNG</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="format" value="jpg">
+                                    <span>JPG</span>
+                                </label>
+                            </div>
+                        </label>
+                        <label class="control-group__label">
+                            <span>文件名前缀</span>
+                            <input type="text" id="prefixInput" class="control-group__input" value="piece" placeholder="piece">
+                        </label>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn--secondary" id="downloadSingleBtn" disabled>
+                            <span>下载单个</span>
+                        </button>
+                        <button class="btn btn--primary" id="downloadZipBtn" disabled>
+                            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span>打包 ZIP 下载</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="btn-group">
-                    <button class="btn btn--secondary" id="downloadSingleBtn" disabled>
-                        <span>下载单个</span>
-                    </button>
-                    <button class="btn btn--primary" id="downloadZipBtn" disabled>
-                        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        <span>打包 ZIP 下载</span>
-                    </button>
-                </div>
-            </section>
+            </div>
         </aside>
 
         <!-- 右侧预览区域 -->

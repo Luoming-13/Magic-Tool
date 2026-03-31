@@ -57,8 +57,10 @@
     --pixel-text-light: #E8DCD0;
 
     /* ===== 边框与分割线 ===== */
-    --pixel-border: #C9B8A8;
+    --pixel-border: #AC927A;
     --pixel-border-hover: #A89878;
+    --pixel-border-dashed: #C9B8A8;
+    --pixel-border-divider: #C9B8A8;
 
     /* ===== 阴影（温暖色调） ===== */
     --pixel-shadow-sm: 2px 2px 0 rgba(44, 24, 16, 0.10);

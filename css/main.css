@@ -87,7 +87,7 @@ h4, .title-sm {
     background: transparent;
     color: var(--pixel-text-primary);
     padding: 1.25rem 2rem 1.25rem 5rem;
-    border-bottom: 3px solid var(--pixel-border);
+    border-bottom: 3px solid var(--pixel-border-divider);
     text-align: center;
     position: relative;
 }
@@ -171,7 +171,7 @@ h4, .title-sm {
     width: 340px;
     min-width: 340px;
     background: var(--pixel-bg-main);
-    border-right: 3px solid var(--pixel-border);
+    border-right: 3px solid var(--pixel-border-divider);
     padding: 1rem;
     overflow-y: auto;
     display: flex;
@@ -253,7 +253,7 @@ h4, .title-sm {
 .preview-container {
     position: relative;
     background: var(--pixel-bg-main);
-    border: 3px dashed var(--pixel-border);
+    border: 3px dashed var(--pixel-border-dashed);
     border-radius: var(--pixel-radius-md);
     min-height: 300px;
     display: flex;
@@ -487,7 +487,7 @@ h4, .title-sm {
         width: 100%;
         min-width: unset;
         border-right: none;
-        border-bottom: 3px solid var(--pixel-border);
+        border-bottom: 3px solid var(--pixel-border-divider);
     }
 
     .control-card {

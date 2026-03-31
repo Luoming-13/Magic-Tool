@@ -119,7 +119,7 @@
 
 /* ===== Upload Zone - 游戏化 ===== */
 .upload-zone {
-    border: 3px dashed var(--pixel-border);
+    border: 3px dashed var(--pixel-border-dashed);
     border-radius: var(--pixel-radius-lg);
     padding: 2rem 1.5rem;
     text-align: center;
@@ -582,7 +582,7 @@
 .control-card__header {
     padding: 1rem 1.25rem;
     background: #F0E8DC;
-    border-bottom: 3px solid var(--pixel-border);
+    border-bottom: 3px solid var(--pixel-border-divider);
 }
 
 .control-card__title {
