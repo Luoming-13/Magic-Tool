@@ -217,10 +217,12 @@ h4, .title-sm {
     font-size: 0.8rem;
     color: var(--pixel-text-secondary);
     border: 3px solid var(--pixel-border);
+    overflow: hidden;
 }
 
 .image-info__name {
     flex: 1 1 100%;
+    min-width: 0;
     font-weight: 600;
     color: var(--pixel-text-primary);
     overflow: hidden;
@@ -281,9 +283,21 @@ h4, .title-sm {
 }
 
 #previewCanvas {
-    max-width: 100%;
-    max-height: 500px;
-    object-fit: contain;
+    display: block;
+}
+
+/* Preview Wrapper - 包裹 canvas 和网格，用于缩放和平移 */
+.preview-wrapper {
+    position: relative;
+    cursor: grab;
+}
+
+.preview-wrapper:active {
+    cursor: grabbing;
+}
+
+.preview-wrapper.dragging {
+    cursor: grabbing;
 }
 
 /* Grid Overlay */
@@ -291,9 +305,27 @@ h4, .title-sm {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
     pointer-events: none;
+}
+
+/* Grid Lines */
+.grid-line-h,
+.grid-line-v {
+    position: absolute;
+    background: rgba(255, 107, 53, 0.8);
+    pointer-events: none;
+}
+
+.grid-line-h {
+    left: 0;
+    right: 0;
+    height: 2px;
+}
+
+.grid-line-v {
+    top: 0;
+    bottom: 0;
+    width: 2px;
 }
 
 /* Pieces Section */

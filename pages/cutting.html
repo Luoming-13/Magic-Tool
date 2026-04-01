@@ -181,10 +181,11 @@
                             <circle cx="8.5" cy="8.5" r="1.5"></circle>
                             <polyline points="21 15 16 10 5 21"></polyline>
                         </svg>
-                        <p>请先上传图片</p>
                     </div>
-                    <canvas id="previewCanvas" style="display: none;"></canvas>
-                    <div class="grid-overlay" id="gridOverlay"></div>
+                    <div class="preview-wrapper" id="previewWrapper" style="display: none;">
+                        <canvas id="previewCanvas"></canvas>
+                        <div class="grid-overlay" id="gridOverlay"></div>
+                    </div>
                 </div>
             </div>
 
@@ -229,6 +230,7 @@
     <script src="../js/modules/imageProcessor.js"></script>
     <script src="../js/modules/imageExporter.js"></script>
     <script src="../js/modules/uiController.js"></script>
+    <script src="../js/modules/gridDetector.js"></script>
     <script src="../js/app.js"></script>
 
     <!-- 分享弹窗 -->

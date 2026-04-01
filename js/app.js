@@ -45,6 +45,12 @@ const App = {
             DOM.hide(DOM.$('#piecesSection'));
         });
 
+        // 图片分析完成（智能检测网格）
+        ImageLoader.on('analyzed', (detection) => {
+            console.log('网格检测结果:', detection);
+            UIController.setAutoDetectedGrid(detection);
+        });
+
         // 图片加载错误
         ImageLoader.on('error', (message) => {
             console.error('图片加载错误:', message);

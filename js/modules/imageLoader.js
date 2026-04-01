@@ -8,7 +8,8 @@ const ImageLoader = {
     _fileInfo: null,
     _callbacks: {
         loaded: [],
-        error: []
+        error: [],
+        analyzed: []
     },
 
     /**
@@ -97,6 +98,12 @@ const ImageLoader = {
             // 触发回调
             this._emitLoaded(image, this._fileInfo);
 
+            // 智能检测网格
+            if (typeof GridDetector !== 'undefined') {
+                const detection = GridDetector.detect(image);
+                this._emitAnalyzed(detection);
+            }
+
         } catch (error) {
             this._emitError('图片加载失败，请重试');
         }
@@ -132,6 +139,15 @@ const ImageLoader = {
     on(event, callback) {
         if (this._callbacks[event]) {
             this._callbacks[event].push(callback);
+        }
+    },
+
+    /**
+     * 触发分析完成
+     */
+    _emitAnalyzed(detection) {
+        if (this._callbacks.analyzed) {
+            this._callbacks.analyzed.forEach(cb => cb(detection));
         }
     },
 

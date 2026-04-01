@@ -11,7 +11,22 @@ const SpriteSheetUI = {
     zoomLevels: {
         multi: 100,
         split: 100,
-        result: 100
+        result: 100,
+        source: 100  // 原图缩放
+    },
+    // 平移状态
+    panStates: {
+        multi: { x: 0, y: 0 },
+        result: { x: 0, y: 0 },
+        source: { x: 0, y: 0 }  // 原图平移
+    },
+    panActiveContainer: null,  // 当前正在拖拽的容器标识
+    panStartX: 0,
+    panStartY: 0,
+    // 切割状态
+    splitCutterState: {
+        hasSplit: false,
+        gridImageData: []
     },
 
     /**
@@ -21,10 +36,14 @@ const SpriteSheetUI = {
         this.bindModeSwitch();
         this.bindMultiUpload();
         this.bindSplitUpload();
+        this.bindSplitCutSettings();
+        this.bindSplitComposeSettings();
         this.bindSettings();
         this.bindExport();
         this.bindZoomControls();
         this.bindRearrange();
+        this.bindWheelZoom();
+        this.bindPanControls();
     },
 
     /**
@@ -64,16 +83,253 @@ const SpriteSheetUI = {
     },
 
     /**
+     * 绑定滚轮缩放
+     */
+    bindWheelZoom() {
+        // 多图模式预览窗滚轮缩放
+        this._bindWheelZoomForContainer('multiPreviewContainer', 'multi', 'multiPreviewCanvas');
+        // 单图拆分合成预览窗滚轮缩放
+        this._bindWheelZoomForContainer('splitResultContainer', 'result', 'splitPreviewCanvas');
+        // 原图窗口滚轮缩放
+        this._bindWheelZoomForSource();
+    },
+
+    /**
+     * 绑定原图窗口滚轮缩放
+     */
+    _bindWheelZoomForSource() {
+        const container = document.getElementById('splitPreviewContainer');
+        if (!container) return;
+
+        container.addEventListener('wheel', (e) => {
+            // 阻止页面滚动
+            e.preventDefault();
+
+            // 计算新的缩放值
+            const delta = e.deltaY > 0 ? -10 : 10;
+            const newZoom = Math.max(10, Math.min(200, this.zoomLevels.source + delta));
+
+            // 如果值没有变化，不执行后续操作
+            if (newZoom === this.zoomLevels.source) return;
+
+            // 更新缩放值
+            this.zoomLevels.source = newZoom;
+
+            // 同步更新滑块和显示值
+            const slider = document.getElementById('sourceZoomSlider');
+            const valueDisplay = document.getElementById('sourceZoomValue');
+            if (slider) slider.value = newZoom;
+            if (valueDisplay) valueDisplay.textContent = `${newZoom}%`;
+
+            // 应用变换
+            this._applySourceTransform();
+        });
+    },
+
+    /**
+     * 应用原图变换（缩放+平移）
+     */
+    _applySourceTransform() {
+        const wrapper = document.getElementById('splitPreviewWrapper');
+        if (!wrapper) return;
+
+        const zoom = this.zoomLevels.source / 100;
+        const pan = this.panStates.source;
+        wrapper.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+        wrapper.style.transformOrigin = 'top left';
+    },
+
+    /**
+     * 绑定平移控制
+     */
+    bindPanControls() {
+        // 多图模式预览窗平移
+        this._bindPanForContainer('multiPreviewContainer', 'multi', 'multiPreviewCanvas');
+        // 单图拆分合成预览窗平移
+        this._bindPanForContainer('splitResultContainer', 'result', 'splitPreviewCanvas');
+        // 原图窗口平移
+        this._bindPanForSource();
+    },
+
+    /**
+     * 绑定原图窗口平移
+     */
+    _bindPanForSource() {
+        const container = document.getElementById('splitPreviewContainer');
+        const wrapper = document.getElementById('splitPreviewWrapper');
+        const canvas = document.getElementById('splitSourceCanvas');
+        if (!container || !wrapper) return;
+
+        // 让 canvas 不拦截鼠标事件，使事件能够到达容器
+        if (canvas) {
+            canvas.style.pointerEvents = 'none';
+        }
+
+        container.style.cursor = 'grab';
+
+        container.addEventListener('mousedown', (e) => {
+            // 只响应鼠标左键
+            if (e.button !== 0) return;
+            // 检查 wrapper 是否可见
+            if (wrapper.style.display === 'none') return;
+
+            this.panActiveContainer = 'source';
+            this.panStartX = e.clientX;
+            this.panStartY = e.clientY;
+            container.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (this.panActiveContainer !== 'source') return;
+
+            const deltaX = e.clientX - this.panStartX;
+            const deltaY = e.clientY - this.panStartY;
+
+            // 更新平移状态
+            this.panStates.source.x += deltaX;
+            this.panStates.source.y += deltaY;
+
+            // 更新起始位置
+            this.panStartX = e.clientX;
+            this.panStartY = e.clientY;
+
+            // 应用变换
+            this._applySourceTransform();
+        });
+
+        const endPan = () => {
+            if (this.panActiveContainer === 'source') {
+                this.panActiveContainer = null;
+                container.style.cursor = 'grab';
+            }
+        };
+
+        document.addEventListener('mouseup', endPan);
+        container.addEventListener('mouseleave', endPan);
+    },
+
+    /**
+     * 为指定容器绑定平移功能
+     */
+    _bindPanForContainer(containerId, panKey, canvasId) {
+        const container = document.getElementById(containerId);
+        const canvas = document.getElementById(canvasId);
+        if (!container || !canvas) return;
+
+        // 让 canvas 不拦截鼠标事件，使事件能够到达容器
+        canvas.style.pointerEvents = 'none';
+
+        container.style.cursor = 'grab';
+
+        container.addEventListener('mousedown', (e) => {
+            // 只响应鼠标左键
+            if (e.button !== 0) return;
+            // 检查 canvas 是否可见
+            if (canvas.style.display === 'none') return;
+
+            this.panActiveContainer = panKey;
+            this.panStartX = e.clientX;
+            this.panStartY = e.clientY;
+            container.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (this.panActiveContainer !== panKey) return;
+
+            const deltaX = e.clientX - this.panStartX;
+            const deltaY = e.clientY - this.panStartY;
+
+            // 更新平移状态
+            this.panStates[panKey].x += deltaX;
+            this.panStates[panKey].y += deltaY;
+
+            // 更新起始位置
+            this.panStartX = e.clientX;
+            this.panStartY = e.clientY;
+
+            // 应用变换
+            this._applyCanvasTransform(canvas, panKey);
+        });
+
+        const endPan = () => {
+            if (this.panActiveContainer === panKey) {
+                this.panActiveContainer = null;
+                container.style.cursor = 'grab';
+            }
+        };
+
+        document.addEventListener('mouseup', endPan);
+        container.addEventListener('mouseleave', endPan);
+    },
+
+    /**
+     * 应用canvas变换（缩放+平移）
+     */
+    _applyCanvasTransform(canvas, key) {
+        const zoom = this.zoomLevels[key] / 100;
+        const pan = this.panStates[key];
+        canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+    },
+
+    /**
+     * 重置指定容器的平移状态
+     */
+    resetPanState(key) {
+        this.panStates[key] = { x: 0, y: 0 };
+    },
+
+    /**
+     * 为指定容器绑定滚轮缩放
+     */
+    _bindWheelZoomForContainer(containerId, zoomKey, canvasId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.addEventListener('wheel', (e) => {
+            // 阻止页面滚动
+            e.preventDefault();
+
+            // 计算新的缩放值
+            const delta = e.deltaY > 0 ? -10 : 10;
+            const newZoom = Math.max(10, Math.min(200, this.zoomLevels[zoomKey] + delta));
+
+            // 如果值没有变化，不执行后续操作
+            if (newZoom === this.zoomLevels[zoomKey]) return;
+
+            // 更新缩放值
+            this.zoomLevels[zoomKey] = newZoom;
+
+            // 同步更新滑块和显示值
+            const sliderId = zoomKey === 'multi' ? 'multiZoomSlider' : 'resultZoomSlider';
+            const valueId = zoomKey === 'multi' ? 'multiZoomValue' : 'resultZoomValue';
+
+            const slider = document.getElementById(sliderId);
+            const valueDisplay = document.getElementById(valueId);
+            if (slider) slider.value = newZoom;
+            if (valueDisplay) valueDisplay.textContent = `${newZoom}%`;
+
+            // 应用变换（缩放+平移）
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                this._applyCanvasTransform(canvas, zoomKey);
+            }
+        });
+    },
+
+    /**
      * 绑定缩放控制
      */
     bindZoomControls() {
         const sliders = [
             { slider: 'multiZoomSlider', value: 'multiZoomValue', key: 'multi', canvas: 'multiPreviewCanvas' },
             { slider: 'splitZoomSlider', value: 'splitZoomValue', key: 'split', rerender: 'splitGrid' },
-            { slider: 'resultZoomSlider', value: 'resultZoomValue', key: 'result', canvas: 'splitPreviewCanvas' }
+            { slider: 'resultZoomSlider', value: 'resultZoomValue', key: 'result', canvas: 'splitPreviewCanvas' },
+            { slider: 'sourceZoomSlider', value: 'sourceZoomValue', key: 'source', isSource: true }
         ];
 
-        sliders.forEach(({ slider, value, key, canvas, rerender }) => {
+        sliders.forEach(({ slider, value, key, canvas, rerender, isSource }) => {
             const sliderEl = document.getElementById(slider);
             const valueEl = document.getElementById(value);
 
@@ -84,10 +340,12 @@ const SpriteSheetUI = {
                 this.zoomLevels[key] = zoom;
                 valueEl.textContent = `${zoom}%`;
 
-                if (canvas) {
+                if (isSource) {
+                    this._applySourceTransform();
+                } else if (canvas) {
                     const canvasEl = document.getElementById(canvas);
                     if (canvasEl) {
-                        canvasEl.style.transform = `scale(${zoom / 100})`;
+                        this._applyCanvasTransform(canvasEl, key);
                     }
                 }
 
@@ -120,6 +378,38 @@ const SpriteSheetUI = {
                 document.getElementById('splitModePanel').style.display = mode === 'split' ? 'block' : 'none';
                 document.getElementById('multiPreviewArea').style.display = mode === 'multi' ? 'flex' : 'none';
                 document.getElementById('splitPreviewArea').style.display = mode === 'split' ? 'flex' : 'none';
+
+                // 切换设置面板显示
+                document.getElementById('composeSettingsSection').style.display = mode === 'multi' ? 'block' : 'none';
+                if (mode === 'split') {
+                    // 根据是否已切割决定显示哪个面板
+                    if (this.splitCutterState.hasSplit) {
+                        document.getElementById('splitCutSettings').style.display = 'none';
+                        document.getElementById('splitComposeSettings').style.display = 'block';
+                    } else {
+                        document.getElementById('splitCutSettings').style.display = 'block';
+                        document.getElementById('splitComposeSettings').style.display = 'none';
+                    }
+                }
+
+                // 切换模式时保留数据，只更新 UI 显示
+                if (mode === 'split') {
+                    // 切换到单图拆分模式时，重新渲染现有数据
+                    this.renderSplitSource();
+                    if (SpriteSheet.splitImages.length > 0) {
+                        this.renderSplitGrid(SpriteSheet.splitImages);
+                        this.renderSplitPreview();
+                    }
+                    // 更新按钮状态
+                    document.getElementById('previewGridBtn').disabled = !SplitCutter.getSourceImage();
+                    document.getElementById('executeCutBtn').disabled = !SplitCutter.getSourceImage();
+                    document.getElementById('toComposeBtn').disabled = !this.splitCutterState.hasSplit;
+                } else {
+                    // 切换到多图模式时，重新渲染现有数据
+                    this.renderImageList();
+                    this.updateImageCount();
+                    this.renderMultiPreview();
+                }
 
                 // 更新导出按钮状态
                 this.updateExportButton();
@@ -210,7 +500,6 @@ const SpriteSheetUI = {
                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                         <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>
-                    <p>请先上传图片</p>
                 </div>
             `;
             return;
@@ -324,9 +613,8 @@ const SpriteSheetUI = {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(result, 0, 0);
 
-        // 应用当前缩放
-        const zoom = this.zoomLevels.multi;
-        canvas.style.transform = `scale(${zoom / 100})`;
+        // 应用当前缩放和平移
+        this._applyCanvasTransform(canvas, 'multi');
 
         this.updateOutputSize();
     },
@@ -366,6 +654,319 @@ const SpriteSheetUI = {
     },
 
     /**
+     * 绑定切割设置
+     */
+    bindSplitCutSettings() {
+        const colsInput = document.getElementById('splitColsInput');
+        const colsSlider = document.getElementById('splitColsSlider');
+        const rowsInput = document.getElementById('splitRowsInput');
+        const rowsSlider = document.getElementById('splitRowsSlider');
+        const sliderMaxInput = document.getElementById('splitSliderMax');
+        const previewBtn = document.getElementById('previewGridBtn');
+        const executeBtn = document.getElementById('executeCutBtn');
+        const toComposeBtn = document.getElementById('toComposeBtn');
+
+        if (!colsInput || !rowsInput) return;
+
+        // 输入变化时更新网格线预览
+        const updateGridPreview = () => {
+            const cols = parseInt(colsInput.value) || 4;
+            const rows = parseInt(rowsInput.value) || 4;
+
+            SplitCutter.setGrid(cols, rows);
+            this.updateSplitPieceSizeInfo();
+
+            if (SplitCutter.getSourceImage()) {
+                this.showSplitGridOverlay();
+            }
+        };
+
+        // 同步滑块和输入框
+        colsInput.addEventListener('input', () => {
+            colsSlider.value = Math.min(colsInput.value, colsSlider.max);
+            updateGridPreview();
+        });
+        colsSlider.addEventListener('input', () => {
+            colsInput.value = colsSlider.value;
+            updateGridPreview();
+        });
+        rowsInput.addEventListener('input', () => {
+            rowsSlider.value = Math.min(rowsInput.value, rowsSlider.max);
+            updateGridPreview();
+        });
+        rowsSlider.addEventListener('input', () => {
+            rowsInput.value = rowsSlider.value;
+            updateGridPreview();
+        });
+
+        // 滑块上限
+        sliderMaxInput.addEventListener('input', () => {
+            const max = parseInt(sliderMaxInput.value) || 10;
+            SplitCutter.setSliderMax(max);
+            colsSlider.max = max;
+            rowsSlider.max = max;
+            colsSlider.value = Math.min(colsInput.value, max);
+            rowsSlider.value = Math.min(rowsInput.value, max);
+        });
+
+        // 预览按钮
+        previewBtn.addEventListener('click', () => {
+            this.showSplitGridOverlay();
+        });
+
+        // 执行切割按钮
+        executeBtn.addEventListener('click', () => {
+            this.executeSplitCut();
+        });
+
+        // 合成按钮（切换到合成设置）
+        toComposeBtn.addEventListener('click', () => {
+            if (!this.splitCutterState.hasSplit) {
+                // 如果还没切割，先执行切割
+                this.executeSplitCut();
+            }
+            this.switchToSplitCompose();
+        });
+    },
+
+    /**
+     * 切换到合成设置（单图拆分模式内）
+     */
+    switchToSplitCompose() {
+        document.getElementById('splitCutSettings').style.display = 'none';
+        document.getElementById('splitComposeSettings').style.display = 'block';
+
+        // 同步切割参数到合成设置
+        const { cols, rows } = SplitCutter.getGridSize();
+        const pieceSize = SplitCutter.getPieceSizeInfo();
+
+        document.getElementById('splitComposeColsInput').value = cols;
+        document.getElementById('splitComposeColsSlider').value = Math.min(cols, 10);
+        document.getElementById('splitComposeRowsInput').value = rows;
+        document.getElementById('splitComposeRowsSlider').value = Math.min(rows, 10);
+
+        if (pieceSize) {
+            document.getElementById('splitCellWidth').value = pieceSize.width;
+            document.getElementById('splitCellHeight').value = pieceSize.height;
+        }
+
+        // 更新 SpriteSheet 参数
+        SpriteSheet.cols = cols;
+        SpriteSheet.rows = rows;
+        if (pieceSize) {
+            SpriteSheet.cellWidth = pieceSize.width;
+            SpriteSheet.cellHeight = pieceSize.height;
+        }
+
+        this.updateSplitOutputSize();
+        this.renderSplitPreview();
+    },
+
+    /**
+     * 切换回切割设置
+     */
+    switchToSplitCut() {
+        document.getElementById('splitComposeSettings').style.display = 'none';
+        document.getElementById('splitCutSettings').style.display = 'block';
+    },
+
+    /**
+     * 绑定合成按钮
+     */
+    bindComposeButton() {
+        // 多图模式的合成按钮已移除，此方法保留用于兼容
+    },
+
+    /**
+     * 绑定单图拆分模式的合成设置
+     */
+    bindSplitComposeSettings() {
+        const colsInput = document.getElementById('splitComposeColsInput');
+        const colsSlider = document.getElementById('splitComposeColsSlider');
+        const rowsInput = document.getElementById('splitComposeRowsInput');
+        const rowsSlider = document.getElementById('splitComposeRowsSlider');
+        const cellWidth = document.getElementById('splitCellWidth');
+        const cellHeight = document.getElementById('splitCellHeight');
+        const paddingInput = document.getElementById('splitPaddingInput');
+        const backBtn = document.getElementById('backToCutBtn');
+
+        if (!colsInput || !rowsInput) return;
+
+        const updateSettings = () => {
+            const newCols = parseInt(colsInput.value) || 4;
+            const newRows = parseInt(rowsInput.value) || 4;
+
+            SpriteSheet.cols = newCols;
+            SpriteSheet.rows = newRows;
+            SpriteSheet.cellWidth = parseInt(cellWidth.value) || 0;
+            SpriteSheet.cellHeight = parseInt(cellHeight.value) || 0;
+            SpriteSheet.padding = parseInt(paddingInput.value) || 0;
+
+            this.updateSplitOutputSize();
+
+            // 当行列数变化时更新拆分网格显示
+            if (SpriteSheet.splitImages.length > 0) {
+                const hasChanged = (newCols !== this._originalSplitCols || newRows !== this._originalSplitRows);
+
+                if (hasChanged) {
+                    // 设置改变，显示重新排列按钮
+                    this.showRearrangeButton();
+                    // 更新网格显示（可能有多余空位或不足）
+                    this.renderSplitGridWithPlaceholders();
+                } else {
+                    this.renderSplitGrid(SpriteSheet.splitImages);
+                }
+            }
+
+            this.renderSplitPreview();
+        };
+
+        // 同步滑块和输入框
+        colsInput.addEventListener('input', () => {
+            colsSlider.value = Math.min(colsInput.value, colsSlider.max);
+            updateSettings();
+        });
+        colsSlider.addEventListener('input', () => {
+            colsInput.value = colsSlider.value;
+            updateSettings();
+        });
+        rowsInput.addEventListener('input', () => {
+            rowsSlider.value = Math.min(rowsInput.value, rowsSlider.max);
+            updateSettings();
+        });
+        rowsSlider.addEventListener('input', () => {
+            rowsInput.value = rowsSlider.value;
+            updateSettings();
+        });
+
+        cellWidth.addEventListener('input', updateSettings);
+        cellHeight.addEventListener('input', updateSettings);
+        paddingInput.addEventListener('input', updateSettings);
+
+        // 返回切割按钮
+        backBtn.addEventListener('click', () => {
+            this.switchToSplitCut();
+        });
+    },
+
+    /**
+     * 更新单图拆分输出尺寸显示
+     */
+    updateSplitOutputSize() {
+        const size = SpriteSheet.calculateOutputSize();
+        const el = document.getElementById('splitOutputSizeInfo');
+        if (el) {
+            el.innerHTML = `输出尺寸: <strong>${size.width} × ${size.height}</strong> px`;
+        }
+    },
+
+    /**
+     * 显示网格线覆盖层
+     */
+    showSplitGridOverlay() {
+        const wrapper = document.getElementById('splitPreviewWrapper');
+        const canvas = document.getElementById('splitSourceCanvas');
+        const overlay = document.getElementById('splitGridOverlay');
+
+        if (!canvas || !overlay) return;
+
+        // 清除现有网格线
+        overlay.innerHTML = '';
+
+        const displayWidth = canvas.width;
+        const displayHeight = canvas.height;
+        const { cols, rows } = SplitCutter.getGridSize();
+
+        // 设置覆盖层尺寸
+        overlay.style.width = displayWidth + 'px';
+        overlay.style.height = displayHeight + 'px';
+
+        // 添加水平线
+        for (let i = 1; i < rows; i++) {
+            const line = document.createElement('div');
+            line.className = 'grid-line-h';
+            line.style.top = (displayHeight / rows) * i + 'px';
+            overlay.appendChild(line);
+        }
+
+        // 添加垂直线
+        for (let i = 1; i < cols; i++) {
+            const line = document.createElement('div');
+            line.className = 'grid-line-v';
+            line.style.left = (displayWidth / cols) * i + 'px';
+            overlay.appendChild(line);
+        }
+    },
+
+    /**
+     * 更新切割块尺寸信息
+     */
+    updateSplitPieceSizeInfo() {
+        const info = SplitCutter.getPieceSizeInfo();
+        const el = document.getElementById('splitPieceSizeInfo');
+        if (el && info) {
+            el.innerHTML = `切割块尺寸: ${info.formatted}`;
+        }
+    },
+
+    /**
+     * 执行切割
+     */
+    executeSplitCut() {
+        if (!SplitCutter.getSourceImage()) return;
+
+        this.showLoading('正在切割...');
+
+        setTimeout(() => {
+            try {
+                const pieces = SplitCutter.executeSplit();
+
+                // 保存切割结果
+                this.splitCutterState.hasSplit = true;
+                this.splitCutterState.gridImageData = SplitCutter.getGridImageData();
+
+                // 更新 SpriteSheet 的拆分数据
+                SpriteSheet.splitImages = pieces.map((p, i) => ({
+                    canvas: p.canvas,
+                    index: i,
+                    row: p.row,
+                    col: p.col
+                }));
+                SpriteSheet.splitOrder = pieces.map((_, i) => i);
+
+                // 更新设置参数
+                const { cols, rows } = SplitCutter.getGridSize();
+                SpriteSheet.cols = cols;
+                SpriteSheet.rows = rows;
+                const pieceSize = SplitCutter.getPieceSizeInfo();
+                SpriteSheet.cellWidth = pieceSize.width;
+                SpriteSheet.cellHeight = pieceSize.height;
+
+                // 保存原始拆分设置，用于检测后续变化
+                this.saveOriginalSplitSettings();
+
+                // 渲染拆分结果
+                this.renderSplitGrid(SpriteSheet.splitImages);
+                this.renderSplitPreview();
+
+                // 启用合成按钮
+                document.getElementById('toComposeBtn').disabled = false;
+
+                this.updateExportButton();
+                this.hideLoading();
+                this.showToast(`切割完成，共 ${pieces.length} 块`, 'success');
+
+                // 自动进入合成设置
+                this.switchToSplitCompose();
+
+            } catch (error) {
+                this.hideLoading();
+                this.showToast('切割失败: ' + error.message, 'error');
+            }
+        }, 50);
+    },
+
+    /**
      * 处理单图文件
      */
     async handleSplitFile(file) {
@@ -378,16 +979,55 @@ const SpriteSheetUI = {
             document.getElementById('splitImageName').textContent = result.name;
             document.getElementById('splitImageSize').textContent = `${result.width} × ${result.height}`;
 
+            // 设置 SplitCutter 的源图片
+            SplitCutter.setSourceImage(result);
+
+            // 重置缩放和平移状态
+            this.zoomLevels.source = 100;
+            this.panStates.source = { x: 0, y: 0 };
+
+            // 同步更新 UI 控件
+            const slider = document.getElementById('sourceZoomSlider');
+            const valueDisplay = document.getElementById('sourceZoomValue');
+            if (slider) slider.value = 100;
+            if (valueDisplay) valueDisplay.textContent = '100%';
+
             // 显示源图
             this.renderSplitSource();
 
-            // 自动计算单元格尺寸
-            const size = SpriteSheet.autoCalculateCellSize();
-            document.getElementById('cellWidth').value = size.width || '';
-            document.getElementById('cellHeight').value = size.height || '';
+            // 智能网格检测
+            if (typeof GridDetector !== 'undefined') {
+                const detection = GridDetector.detect(result.img);
 
-            // 拆分图片
-            this.performSplit();
+                if (detection.confidence > 0.3) {
+                    document.getElementById('splitColsInput').value = detection.cols;
+                    document.getElementById('splitRowsInput').value = detection.rows;
+                    document.getElementById('splitColsSlider').value = Math.min(detection.cols, 10);
+                    document.getElementById('splitRowsSlider').value = Math.min(detection.rows, 10);
+                    SplitCutter.setGrid(detection.cols, detection.rows);
+
+                    const methodNames = {
+                        transparent: '透明背景检测',
+                        background: '背景色分离检测',
+                        gridPattern: '网格规律分析',
+                        sizeHint: '尺寸推算'
+                    };
+                    this.showToast(
+                        `自动识别: ${detection.cols}列 × ${detection.rows}行 (${methodNames[detection.method] || '智能识别'})`,
+                        detection.confidence > 0.6 ? 'success' : 'info'
+                    );
+                }
+            }
+
+            // 更新切割块尺寸信息
+            this.updateSplitPieceSizeInfo();
+
+            // 显示网格线预览
+            this.showSplitGridOverlay();
+
+            // 启用按钮
+            document.getElementById('previewGridBtn').disabled = false;
+            document.getElementById('executeCutBtn').disabled = false;
 
             this.updateExportButton();
         } catch (error) {
@@ -402,22 +1042,26 @@ const SpriteSheetUI = {
      */
     renderSplitSource() {
         const container = document.getElementById('splitPreviewContainer');
+        const wrapper = document.getElementById('splitPreviewWrapper');
         const canvas = document.getElementById('splitSourceCanvas');
 
         if (!SpriteSheet.sourceImage) {
-            canvas.style.display = 'none';
+            wrapper.style.display = 'none';
             container.querySelector('.preview-placeholder').style.display = 'flex';
             return;
         }
 
         container.querySelector('.preview-placeholder').style.display = 'none';
-        canvas.style.display = 'block';
+        wrapper.style.display = 'block';
 
         const { img } = SpriteSheet.sourceImage;
         canvas.width = img.width;
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
+
+        // 应用当前缩放和平移
+        this._applySourceTransform();
     },
 
     /**
@@ -586,9 +1230,8 @@ const SpriteSheetUI = {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(result, 0, 0);
 
-        // 应用当前缩放
-        const zoom = this.zoomLevels.result;
-        canvas.style.transform = `scale(${zoom / 100})`;
+        // 应用当前缩放和平移
+        this._applyCanvasTransform(canvas, 'result');
 
         this.updateOutputSize();
     },

@@ -15,6 +15,15 @@ const UIController = {
         pieces: 100
     },
 
+    // 平移状态
+    _panState: {
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        offsetX: 0,
+        offsetY: 0
+    },
+
     /**
      * 初始化
      */
@@ -38,7 +47,7 @@ const UIController = {
                 const zoom = parseInt(previewSlider.value);
                 this._zoomLevels.preview = zoom;
                 previewValue.textContent = `${zoom}%`;
-                this._elements.previewCanvas.style.transform = `scale(${zoom / 100})`;
+                this._updatePreviewTransform();
             });
         }
 
@@ -93,6 +102,7 @@ const UIController = {
 
             // 预览区域
             previewContainer: DOM.$('#previewContainer'),
+            previewWrapper: DOM.$('#previewWrapper'),
             previewCanvas: DOM.$('#previewCanvas'),
             gridOverlay: DOM.$('#gridOverlay'),
             piecesSection: DOM.$('#piecesSection'),
@@ -147,6 +157,115 @@ const UIController = {
         // 下载按钮
         DOM.on(this._elements.downloadSingleBtn, 'click', () => this._onDownloadSingleClick());
         DOM.on(this._elements.downloadZipBtn, 'click', () => this._onDownloadZipClick());
+
+        // 平移事件
+        this._bindPanEvents();
+
+        // 滚轮缩放事件
+        this._bindWheelZoom();
+    },
+
+    /**
+     * 绑定平移事件
+     */
+    _bindPanEvents() {
+        const wrapper = this._elements.previewWrapper;
+        if (!wrapper) return;
+
+        // 鼠标按下
+        DOM.on(wrapper, 'mousedown', (e) => {
+            if (this._state === 'idle') return;
+            e.preventDefault();
+            this._panState.isDragging = true;
+            this._panState.startX = e.clientX - this._panState.offsetX;
+            this._panState.startY = e.clientY - this._panState.offsetY;
+            DOM.addClass(wrapper, 'dragging');
+        });
+
+        // 鼠标移动
+        DOM.on(document, 'mousemove', (e) => {
+            if (!this._panState.isDragging) return;
+            this._panState.offsetX = e.clientX - this._panState.startX;
+            this._panState.offsetY = e.clientY - this._panState.startY;
+            this._updatePreviewTransform();
+        });
+
+        // 鼠标释放
+        DOM.on(document, 'mouseup', () => {
+            if (this._panState.isDragging) {
+                this._panState.isDragging = false;
+                DOM.removeClass(wrapper, 'dragging');
+            }
+        });
+
+        // 触摸事件支持
+        DOM.on(wrapper, 'touchstart', (e) => {
+            if (this._state === 'idle') return;
+            const touch = e.touches[0];
+            this._panState.isDragging = true;
+            this._panState.startX = touch.clientX - this._panState.offsetX;
+            this._panState.startY = touch.clientY - this._panState.offsetY;
+        });
+
+        DOM.on(wrapper, 'touchmove', (e) => {
+            if (!this._panState.isDragging) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            this._panState.offsetX = touch.clientX - this._panState.startX;
+            this._panState.offsetY = touch.clientY - this._panState.startY;
+            this._updatePreviewTransform();
+        });
+
+        DOM.on(wrapper, 'touchend', () => {
+            this._panState.isDragging = false;
+        });
+    },
+
+    /**
+     * 绑定滚轮缩放事件
+     */
+    _bindWheelZoom() {
+        const container = this._elements.previewContainer;
+        if (!container) return;
+
+        DOM.on(container, 'wheel', (e) => {
+            // 仅在图片加载后才能缩放
+            if (this._state === 'idle') return;
+
+            e.preventDefault();
+
+            // 计算新的缩放值
+            const delta = e.deltaY > 0 ? -10 : 10;
+            const newZoom = Math.max(10, Math.min(200, this._zoomLevels.preview + delta));
+
+            // 如果值没有变化，不执行后续操作
+            if (newZoom === this._zoomLevels.preview) return;
+
+            // 更新缩放值
+            this._zoomLevels.preview = newZoom;
+
+            // 同步更新滑块和显示值
+            const slider = DOM.$('#previewZoomSlider');
+            const valueDisplay = DOM.$('#previewZoomValue');
+            if (slider) slider.value = newZoom;
+            if (valueDisplay) valueDisplay.textContent = `${newZoom}%`;
+
+            // 应用变换
+            this._updatePreviewTransform();
+        });
+    },
+
+    /**
+     * 更新预览变换（缩放+平移）
+     */
+    _updatePreviewTransform() {
+        const wrapper = this._elements.previewWrapper;
+        if (!wrapper) return;
+
+        const zoom = this._zoomLevels.preview;
+        const { offsetX, offsetY } = this._panState;
+
+        wrapper.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${zoom / 100})`;
     },
 
     /**
@@ -261,11 +380,12 @@ const UIController = {
      */
     showPreview(image) {
         const canvas = this._elements.previewCanvas;
+        const wrapper = this._elements.previewWrapper;
         const container = this._elements.previewContainer;
 
         // 计算合适的显示尺寸，限制最大尺寸
-        const maxWidth = Math.min(container.clientWidth - 20, 800);
-        const maxHeight = 400;
+        const maxWidth = Math.min(container.clientWidth - 40, 800);
+        const maxHeight = 500;
 
         let displayWidth = image.width;
         let displayHeight = image.height;
@@ -289,13 +409,13 @@ const UIController = {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(image, 0, 0, displayWidth, displayHeight);
 
-        // 应用当前缩放
-        const zoom = this._zoomLevels.preview;
-        canvas.style.transform = `scale(${zoom / 100})`;
+        // 重置平移状态
+        this._panState.offsetX = 0;
+        this._panState.offsetY = 0;
 
-        // 隐藏占位符，显示 Canvas
+        // 隐藏占位符，显示 wrapper
         DOM.hide(DOM.$('.preview-placeholder', container));
-        DOM.show(canvas);
+        DOM.show(wrapper);
 
         // 更新切割块尺寸信息并显示网格线
         const cols = parseInt(this._elements.colsInput.value) || 1;
@@ -303,6 +423,9 @@ const UIController = {
         ImageProcessor.setGrid(cols, rows);
         this._updatePieceSizeInfo();
         this.showGridOverlay();
+
+        // 应用变换
+        this._updatePreviewTransform();
     },
 
     /**
@@ -310,47 +433,43 @@ const UIController = {
      */
     showGridOverlay() {
         const canvas = this._elements.previewCanvas;
-        const container = this._elements.previewContainer;
         const overlay = this._elements.gridOverlay;
+
+        if (!canvas || !overlay) return;
 
         // 清除现有网格线
         DOM.empty(overlay);
 
-        // 获取容器尺寸（用于计算 Canvas 居中位置）
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
+        const displayWidth = canvas.width;
+        const displayHeight = canvas.height;
+        const cols = parseInt(this._elements.colsInput.value) || 1;
+        const rows = parseInt(this._elements.rowsInput.value) || 1;
 
-        // 获取预览数据，传入容器尺寸和 Canvas 尺寸
-        const previewData = ImageProcessor.getPreviewData(containerWidth, containerHeight, canvas.width, canvas.height);
-        if (!previewData) return;
-
-        // 创建网格线容器样式
+        // 设置网格覆盖层尺寸与 canvas 一致
         DOM.setStyles(overlay, {
-            left: previewData.offsetX + 'px',
-            top: previewData.offsetY + 'px',
-            width: previewData.displayWidth + 'px',
-            height: previewData.displayHeight + 'px'
+            width: displayWidth + 'px',
+            height: displayHeight + 'px'
         });
 
         // 添加水平线
-        previewData.horizontalLines.forEach(y => {
+        for (let i = 1; i < rows; i++) {
             const line = DOM.createElement('div', 'grid-line-h');
-            const relativeY = y - previewData.offsetY;
+            const y = (displayHeight / rows) * i;
             DOM.setStyles(line, {
-                top: relativeY + 'px'
+                top: y + 'px'
             });
             overlay.appendChild(line);
-        });
+        }
 
         // 添加垂直线
-        previewData.verticalLines.forEach(x => {
+        for (let i = 1; i < cols; i++) {
             const line = DOM.createElement('div', 'grid-line-v');
-            const relativeX = x - previewData.offsetX;
+            const x = (displayWidth / cols) * i;
             DOM.setStyles(line, {
-                left: relativeX + 'px'
+                left: x + 'px'
             });
             overlay.appendChild(line);
-        });
+        }
     },
 
     /**
@@ -577,6 +696,50 @@ const UIController = {
     },
 
     /**
+     * 设置自动检测的网格值
+     * @param {Object} detection - 检测结果 { cols, rows, confidence, method, objectCount }
+     */
+    setAutoDetectedGrid(detection) {
+        if (!detection) return;
+
+        const { cols, rows, confidence, method, objectCount } = detection;
+
+        // 只在置信度足够高时自动设置
+        if (confidence > 0.3) {
+            this._elements.colsInput.value = cols;
+            this._elements.rowsInput.value = rows;
+
+            // 同步滑块
+            this._syncSliderWithValue('cols', cols);
+            this._syncSliderWithValue('rows', rows);
+
+            // 更新切割块尺寸信息
+            ImageProcessor.setGrid(cols, rows);
+            this._updatePieceSizeInfo();
+
+            // 显示检测提示
+            const methodNames = {
+                transparent: '透明背景检测',
+                background: '背景色分离检测',
+                gridPattern: '网格规律分析',
+                sizeHint: '尺寸推算',
+                default: '默认值'
+            };
+
+            const methodName = methodNames[method] || '智能识别';
+            const objectInfo = objectCount ? `，检测到 ${objectCount} 个主体` : '';
+
+            this.showToast(
+                `自动识别: ${cols}列 × ${rows}行 (${methodName}${objectInfo})`,
+                confidence > 0.6 ? 'success' : 'info'
+            );
+        } else {
+            // 置信度过低，提示用户
+            this.showToast('无法准确识别主体，请手动调整行列数', 'warning');
+        }
+    },
+
+    /**
      * 重置 UI
      */
     reset() {
@@ -584,8 +747,11 @@ const UIController = {
         this.hideGridOverlay();
         DOM.hide(this._elements.imageInfo);
         DOM.hide(this._elements.piecesSection);
-        DOM.show(DOM.$('.preview-placeholder', this._elements.previewContainer));
-        DOM.hide(this._elements.previewCanvas);
+
+        const container = this._elements.previewContainer;
+        DOM.show(DOM.$('.preview-placeholder', container));
+        DOM.hide(this._elements.previewWrapper);
+
         this._elements.colsInput.value = '3';
         this._elements.rowsInput.value = '3';
         this._elements.pieceSizeInfo.innerHTML = '<span>切割块尺寸: --</span>';
@@ -593,7 +759,14 @@ const UIController = {
         // 重置缩放
         this._zoomLevels.preview = 100;
         this._zoomLevels.pieces = 100;
-        this._elements.previewCanvas.style.transform = 'scale(1)';
+
+        // 重置平移
+        this._panState.offsetX = 0;
+        this._panState.offsetY = 0;
+        this._panState.isDragging = false;
+
+        // 重置变换
+        this._updatePreviewTransform();
 
         const previewSlider = DOM.$('#previewZoomSlider');
         const previewValue = DOM.$('#previewZoomValue');
