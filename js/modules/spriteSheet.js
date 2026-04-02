@@ -325,12 +325,12 @@ const SpriteSheet = {
     /**
      * 下载精灵图
      */
-    async download(filename = 'sprite-sheet', format = 'png') {
+    async download(filename = 'sprite-sheet', format = 'png', prefix = '', suffix = '') {
         const blob = await this.exportAsBlob(format);
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${filename}.${format}`;
+        link.download = `${prefix}${filename}${suffix}.${format}`;
         link.click();
         URL.revokeObjectURL(url);
     }

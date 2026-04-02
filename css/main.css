@@ -312,7 +312,7 @@ h4, .title-sm {
 .grid-line-h,
 .grid-line-v {
     position: absolute;
-    background: rgba(255, 107, 53, 0.8);
+    background: var(--pixel-border-dashed);
     pointer-events: none;
 }
 

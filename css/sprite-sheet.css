@@ -64,7 +64,7 @@
 
 /* ===== Preview Container Zoomable ===== */
 .preview-container--zoomable {
-    max-height: 500px;
+    max-height: 420px;
     overflow: auto;
     align-items: flex-start;
 }
@@ -76,7 +76,7 @@
 
 /* ===== Split Grid Zoomable ===== */
 .split-grid--zoomable {
-    max-height: 500px;
+    max-height: 420px;
     overflow: auto;
 }
 
@@ -580,7 +580,7 @@
 }
 
 .split-grid-item--placeholder .split-grid-item__index {
-    background: var(--pixel-secondary);
+    background: var(--pixel-primary);
     opacity: 0.5;
 }
 
@@ -622,19 +622,17 @@
 .grid-line-h,
 .grid-line-v {
     position: absolute;
-    background: transparent;
+    background: var(--pixel-border-dashed);
 }
 
 .grid-line-h {
     width: 100%;
-    height: 0;
-    border-top: 2px dashed rgba(255, 250, 240, 0.9);
+    height: 2px;
 }
 
 .grid-line-v {
-    width: 0;
+    width: 2px;
     height: 100%;
-    border-left: 2px dashed rgba(255, 250, 240, 0.9);
 }
 
 /* ===== Full Width Button ===== */

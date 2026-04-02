@@ -9,6 +9,9 @@ const UIController = {
     // 状态
     _state: 'idle', // idle, imageLoaded, processing, readyExport
 
+    // 网格可见状态
+    _gridVisible: true,
+
     // 缩放级别
     _zoomLevels: {
         preview: 100,
@@ -323,8 +326,8 @@ const UIController = {
         ImageProcessor.setGrid(cols, rows);
         this._updatePieceSizeInfo();
 
-        // 如果图片已加载，实时显示网格线
-        if (this._state !== 'idle') {
+        // 如果图片已加载且网格可见，实时更新网格线
+        if (this._state !== 'idle' && this._gridVisible) {
             this.showGridOverlay();
         }
     },
@@ -403,7 +406,6 @@ const UIController = {
         const rows = parseInt(this._elements.rowsInput.value) || 1;
         ImageProcessor.setGrid(cols, rows);
         this._updatePieceSizeInfo();
-        this.showGridOverlay();
 
         // 使用统一的预览工具进行自适应缩放
         const fitScale = PreviewUtils.autoFitPreview({
@@ -416,6 +418,18 @@ const UIController = {
 
         // 更新缩放级别以匹配计算出的缩放值
         this._zoomLevels.preview = Math.round(fitScale * 100);
+
+        // 将 canvas 的 scale 移到 wrapper 上，确保 canvas 和 grid-overlay 同步缩放
+        const canvasScale = canvas.style.transform;
+        if (canvasScale) {
+            canvas.style.transform = '';
+            canvas.style.transformOrigin = '';
+            wrapper.style.transform = `translate(0px, 0px) scale(${fitScale})`;
+            wrapper.style.transformOrigin = 'center center';
+        }
+
+        // 显示网格线（在 wrapper 缩放后）
+        this.showGridOverlay();
     },
 
     /**
@@ -460,6 +474,10 @@ const UIController = {
             });
             overlay.appendChild(line);
         }
+
+        // 更新状态和按钮文字
+        this._gridVisible = true;
+        this._updateGridPreviewBtnText();
     },
 
     /**
@@ -467,6 +485,21 @@ const UIController = {
      */
     hideGridOverlay() {
         DOM.empty(this._elements.gridOverlay);
+        this._gridVisible = false;
+        this._updateGridPreviewBtnText();
+    },
+
+    /**
+     * 更新预览按钮文字
+     */
+    _updateGridPreviewBtnText() {
+        const btn = this._elements.previewBtn;
+        if (btn) {
+            const span = btn.querySelector('span');
+            if (span) {
+                span.textContent = this._gridVisible ? '隐藏切割线' : '预览切割线';
+            }
+        }
     },
 
     /**
@@ -534,14 +567,17 @@ const UIController = {
     },
 
     /**
-     * 预览按钮点击
+     * 预览按钮点击 - 切换网格线显示
      */
     _onPreviewClick() {
-        const cols = parseInt(this._elements.colsInput.value) || 1;
-        const rows = parseInt(this._elements.rowsInput.value) || 1;
-
-        ImageProcessor.setGrid(cols, rows);
-        this.showGridOverlay();
+        if (this._gridVisible) {
+            this.hideGridOverlay();
+        } else {
+            const cols = parseInt(this._elements.colsInput.value) || 1;
+            const rows = parseInt(this._elements.rowsInput.value) || 1;
+            ImageProcessor.setGrid(cols, rows);
+            this.showGridOverlay();
+        }
     },
 
     /**

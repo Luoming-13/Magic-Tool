@@ -175,10 +175,6 @@
     color: white;
 }
 
-.tool-card__icon--green {
-    background: linear-gradient(135deg, var(--pixel-secondary) 0%, var(--pixel-secondary-dark) 100%);
-}
-
 .tool-card__content {
     flex: 1;
     min-width: 0;

@@ -387,21 +387,8 @@
 
 .btn--secondary:hover:not(:disabled) {
     background: var(--pixel-bg-panel);
-    border-color: var(--pixel-secondary);
-    color: var(--pixel-secondary-dark);
-}
-
-/* 辅助按钮 */
-.btn--accent {
-    background: var(--pixel-secondary);
-    color: white;
-    border-color: var(--pixel-secondary-dark);
-    box-shadow: var(--pixel-shadow-md);
-}
-
-.btn--accent:hover:not(:disabled) {
-    background: var(--pixel-secondary-dark);
-    transform: translateY(-2px);
+    border-color: var(--pixel-primary);
+    color: var(--pixel-primary-dark);
 }
 
 /* 小按钮 */
@@ -521,8 +508,7 @@
 .grid-line-h,
 .grid-line-v {
     position: absolute;
-    background: rgba(255, 107, 53, 0.8);
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    background: var(--pixel-border-dashed);
 }
 
 .grid-line-h {

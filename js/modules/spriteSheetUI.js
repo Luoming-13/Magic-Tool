@@ -5,7 +5,8 @@
  */
 
 const SpriteSheetUI = {
-    currentMode: 'multi',  // 'multi' | 'split'
+    currentMode: 'split',  // 'multi' | 'split' - 默认单图拆分模式
+    splitSubMode: 'cut',   // 'cut' | 'compose' - 单图拆分模式的子模式
     draggedItem: null,
     draggedIndex: null,
     zoomLevels: {
@@ -26,7 +27,8 @@ const SpriteSheetUI = {
     // 切割状态
     splitCutterState: {
         hasSplit: false,
-        gridImageData: []
+        gridImageData: [],
+        gridVisible: true  // 切割线默认显示
     },
 
     /**
@@ -44,6 +46,8 @@ const SpriteSheetUI = {
         this.bindRearrange();
         this.bindWheelZoom();
         this.bindPanControls();
+        // 初始化导出按钮显示
+        this.updateExportButtonDisplay();
     },
 
     /**
@@ -387,9 +391,11 @@ const SpriteSheetUI = {
                     if (this.splitCutterState.hasSplit) {
                         document.getElementById('splitCutSettings').style.display = 'none';
                         document.getElementById('splitComposeSettings').style.display = 'block';
+                        this.splitSubMode = 'compose';
                     } else {
                         document.getElementById('splitCutSettings').style.display = 'block';
                         document.getElementById('splitComposeSettings').style.display = 'none';
+                        this.splitSubMode = 'cut';
                     }
                 }
 
@@ -414,6 +420,7 @@ const SpriteSheetUI = {
 
                 // 更新导出按钮状态
                 this.updateExportButton();
+                this.updateExportButtonDisplay();
             });
         });
     },
@@ -677,7 +684,8 @@ const SpriteSheetUI = {
             SplitCutter.setGrid(cols, rows);
             this.updateSplitPieceSizeInfo();
 
-            if (SplitCutter.getSourceImage()) {
+            // 只有在网格可见时才更新显示
+            if (SplitCutter.getSourceImage() && this.splitCutterState.gridVisible) {
                 this.showSplitGridOverlay();
             }
         };
@@ -710,9 +718,9 @@ const SpriteSheetUI = {
             rowsSlider.value = Math.min(rowsInput.value, max);
         });
 
-        // 预览按钮
+        // 预览按钮 - 切换网格线显示
         previewBtn.addEventListener('click', () => {
-            this.showSplitGridOverlay();
+            this.toggleSplitGridOverlay();
         });
 
         // 执行切割按钮
@@ -736,6 +744,10 @@ const SpriteSheetUI = {
     switchToSplitCompose() {
         document.getElementById('splitCutSettings').style.display = 'none';
         document.getElementById('splitComposeSettings').style.display = 'block';
+
+        // 更新子模式状态
+        this.splitSubMode = 'compose';
+        this.updateExportButtonDisplay();
 
         // 同步切割参数到合成设置
         const { cols, rows } = SplitCutter.getGridSize();
@@ -769,6 +781,10 @@ const SpriteSheetUI = {
     switchToSplitCut() {
         document.getElementById('splitComposeSettings').style.display = 'none';
         document.getElementById('splitCutSettings').style.display = 'block';
+
+        // 更新子模式状态
+        this.splitSubMode = 'cut';
+        this.updateExportButtonDisplay();
     },
 
     /**
@@ -897,6 +913,46 @@ const SpriteSheetUI = {
             line.style.left = (displayWidth / cols) * i + 'px';
             overlay.appendChild(line);
         }
+
+        // 更新状态和按钮文字
+        this.splitCutterState.gridVisible = true;
+        this.updateGridPreviewBtnText();
+    },
+
+    /**
+     * 隐藏网格线覆盖层
+     */
+    hideSplitGridOverlay() {
+        const overlay = document.getElementById('splitGridOverlay');
+        if (overlay) {
+            overlay.innerHTML = '';
+        }
+        this.splitCutterState.gridVisible = false;
+        this.updateGridPreviewBtnText();
+    },
+
+    /**
+     * 切换网格线显示
+     */
+    toggleSplitGridOverlay() {
+        if (this.splitCutterState.gridVisible) {
+            this.hideSplitGridOverlay();
+        } else {
+            this.showSplitGridOverlay();
+        }
+    },
+
+    /**
+     * 更新预览按钮文字
+     */
+    updateGridPreviewBtnText() {
+        const btn = document.getElementById('previewGridBtn');
+        if (btn) {
+            const span = btn.querySelector('span');
+            if (span) {
+                span.textContent = this.splitCutterState.gridVisible ? '隐藏切割线' : '预览切割线';
+            }
+        }
     },
 
     /**
@@ -957,9 +1013,6 @@ const SpriteSheetUI = {
                 this.hideLoading();
                 this.showToast(`切割完成，共 ${pieces.length} 块`, 'success');
 
-                // 自动进入合成设置
-                this.switchToSplitCompose();
-
             } catch (error) {
                 this.hideLoading();
                 this.showToast('切割失败: ' + error.message, 'error');
@@ -975,10 +1028,6 @@ const SpriteSheetUI = {
         try {
             const result = await SpriteSheet.setSourceImage(file);
 
-            // 显示图片信息
-            document.getElementById('splitImageInfo').style.display = 'flex';
-            document.getElementById('splitImageName').textContent = result.name;
-            document.getElementById('splitImageSize').textContent = `${result.width} × ${result.height}`;
 
             // 设置 SplitCutter 的源图片
             SplitCutter.setSourceImage(result);
@@ -1130,6 +1179,13 @@ const SpriteSheetUI = {
                             </svg>
                         </button>
                     </div>
+                    <button class="split-grid-item__download" data-original-index="${originalIndex}" title="下载此帧">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
                 </div>
             `;
         }).join('');
@@ -1148,6 +1204,15 @@ const SpriteSheetUI = {
                 e.stopPropagation();
                 const newIndex = parseInt(btn.dataset.newIndex);
                 this.removeSplitFrame(newIndex);
+            });
+        });
+
+        // 绑定下载按钮
+        container.querySelectorAll('.split-grid-item__download').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const originalIndex = parseInt(btn.dataset.originalIndex);
+                this.downloadSingleSplitImage(originalIndex);
             });
         });
 
@@ -1417,12 +1482,21 @@ const SpriteSheetUI = {
         const exportBtn = document.getElementById('exportBtn');
 
         exportBtn.addEventListener('click', async () => {
+            // 单图拆分模式 - 切割模式下打包下载
+            if (this.currentMode === 'split' && this.splitSubMode === 'cut') {
+                await this.downloadSplitImagesAsZip();
+                return;
+            }
+
+            // 其他情况 - 导出 Sprite Sheet
             const format = document.querySelector('input[name="format"]:checked').value;
+            const prefix = document.getElementById('fileNamePrefix')?.value || '';
+            const suffix = document.getElementById('fileNameSuffix')?.value || '';
 
             this.showLoading('正在导出...');
 
             try {
-                await SpriteSheet.download('sprite-sheet', format);
+                await SpriteSheet.download('sprite-sheet', format, prefix, suffix);
                 this.showToast('导出成功！', 'success');
             } catch (error) {
                 this.showToast('导出失败: ' + error.message, 'error');
@@ -1430,6 +1504,136 @@ const SpriteSheetUI = {
                 this.hideLoading();
             }
         });
+    },
+
+    /**
+     * 更新导出按钮显示
+     */
+    updateExportButtonDisplay() {
+        const exportBtn = document.getElementById('exportBtn');
+        if (!exportBtn) return;
+
+        if (this.currentMode === 'split' && this.splitSubMode === 'cut') {
+            // 切割模式 - 显示打包下载
+            exportBtn.innerHTML = `
+                <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>打包zip下载</span>
+            `;
+        } else {
+            // 其他情况 - 显示导出 Sprite Sheet
+            exportBtn.innerHTML = `
+                <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>导出 Sprite Sheet</span>
+            `;
+        }
+    },
+
+    /**
+     * 下载单张拆分图片
+     */
+    async downloadSingleSplitImage(originalIndex) {
+        const item = SpriteSheet.splitImages[originalIndex];
+        if (!item || !item.canvas) {
+            this.showToast('图片不存在', 'error');
+            return;
+        }
+
+        const format = document.querySelector('input[name="format"]:checked')?.value || 'png';
+        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const prefix = document.getElementById('fileNamePrefix')?.value || '';
+
+        try {
+            const blob = await new Promise(resolve => {
+                item.canvas.toBlob(resolve, mimeType, 0.92);
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // 使用 splitOrder 找到当前图片的新索引
+            const newIndex = SpriteSheet.splitOrder.indexOf(originalIndex);
+            const indexStr = String(newIndex + 1).padStart(3, '0');
+            link.download = `${prefix}${indexStr}.${format}`;
+
+            link.click();
+            URL.revokeObjectURL(url);
+
+            this.showToast('下载成功', 'success');
+        } catch (error) {
+            console.error('下载失败:', error);
+            this.showToast('下载失败', 'error');
+        }
+    },
+
+    /**
+     * 打包下载拆分图片
+     */
+    async downloadSplitImagesAsZip() {
+        if (SpriteSheet.splitImages.length === 0) {
+            this.showToast('没有可导出的图片', 'error');
+            return;
+        }
+
+        this.showLoading('正在打包...');
+
+        try {
+            const zip = new JSZip();
+            const format = document.querySelector('input[name="format"]:checked').value;
+            const prefix = document.getElementById('fileNamePrefix')?.value || '';
+            const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+
+            // 按 splitOrder 顺序导出
+            const total = SpriteSheet.splitOrder.length;
+
+            for (let i = 0; i < total; i++) {
+                const originalIndex = SpriteSheet.splitOrder[i];
+                const item = SpriteSheet.splitImages[originalIndex];
+                if (!item || !item.canvas) continue;
+
+                // 获取 Blob
+                const blob = await new Promise(resolve => {
+                    item.canvas.toBlob(resolve, mimeType, 0.92);
+                });
+
+                // 生成文件名
+                const indexStr = String(i + 1).padStart(3, '0');
+                const filename = `${prefix}${indexStr}.${format}`;
+
+                // 添加到 ZIP
+                zip.file(filename, blob);
+            }
+
+            // 生成 ZIP
+            const zipBlob = await zip.generateAsync({
+                type: 'blob',
+                compression: 'DEFLATE',
+                compressionOptions: { level: 6 }
+            });
+
+            // 触发下载
+            const url = URL.createObjectURL(zipBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            const timestamp = new Date().toISOString().slice(0, 10);
+            link.download = `split-images_${timestamp}.zip`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            this.showToast(`打包成功，共 ${total} 张图片`, 'success');
+        } catch (error) {
+            this.showToast('打包失败: ' + error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
     },
 
     /**
