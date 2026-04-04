@@ -63,7 +63,6 @@ const FrameStandardizerApp = {
             clearAllBlocksBtn: DOM.$('#clearAllBlocksBtn'),
 
             // 对齐预览
-            alignBlockCount: DOM.$('#alignBlockCount'),
             clearAlignBlocksBtn: DOM.$('#clearAlignBlocksBtn'),
 
             // 锚点下拉菜单
@@ -77,7 +76,8 @@ const FrameStandardizerApp = {
             sheetSettings: DOM.$('#sheetSettings'),
             sheetColsInput: DOM.$('#sheetColsInput'),
             sheetColsSlider: DOM.$('#sheetColsSlider'),
-            sheetSpacing: DOM.$('#sheetSpacing'),
+            extendHorizontal: DOM.$('#extendHorizontal'),
+            extendVertical: DOM.$('#extendVertical'),
             sheetSizeInfo: DOM.$('#sheetSizeInfo'),
 
             // 导出
@@ -178,7 +178,8 @@ const FrameStandardizerApp = {
             this._elements.sheetColsInput.value = e.target.value;
             this._onSheetColsChange();
         });
-        DOM.on(this._elements.sheetSpacing, 'input', () => this._onSheetSpacingChange());
+        DOM.on(this._elements.extendHorizontal, 'input', () => this._onExtendChange());
+        DOM.on(this._elements.extendVertical, 'input', () => this._onExtendChange());
 
         // 导出
         DOM.on(this._elements.previewSheetBtn, 'click', () => this._previewSpriteSheet());
@@ -513,6 +514,10 @@ const FrameStandardizerApp = {
         // 清空文件输入
         this._elements.fileInput.value = '';
 
+        // 重置扩展距离输入框
+        this._elements.extendHorizontal.value = '0';
+        this._elements.extendVertical.value = '0';
+
         // 更新按钮状态
         this._updateButtonStates();
 
@@ -536,9 +541,6 @@ const FrameStandardizerApp = {
                 </svg>
             </div>
         `;
-
-        // 更新块计数
-        this._elements.alignBlockCount.textContent = '0 个';
     },
 
     /**
@@ -576,7 +578,7 @@ const FrameStandardizerApp = {
 
         FrameAligner.setPivotType(pivotType);
 
-        if (this._state === 'blocks_created' || this._state === 'aligned') {
+        if (this._state === 'blocks_created' || this._state === 'aligned' || this._state === 'generated') {
             this._calculateAlignment();
         }
     },
@@ -620,12 +622,10 @@ const FrameStandardizerApp = {
         const container = this._elements.alignGrid;
         DOM.empty(container);
 
-        // 更新块计数
-        this._elements.alignBlockCount.textContent = `${blocks.length} 个`;
-
         blocks.forEach((block, index) => {
             const item = DOM.createElement('div', 'align-grid__item', {
-                data: { blockId: block.id, index: index }
+                dataBlockId: block.id,
+                dataIndex: index
             });
 
             // Canvas 预览
@@ -700,7 +700,7 @@ const FrameStandardizerApp = {
                 moveBtn.classList.add('dragging');
             });
 
-            DOM.on(moveBtn, 'dragend', () => {
+            DOM.on(moveBtn, 'dragend', (e) => {
                 item.classList.remove('dragging');
                 moveBtn.classList.remove('dragging');
                 this._clearDragOverStates();
@@ -723,8 +723,11 @@ const FrameStandardizerApp = {
                 }
             });
 
-            DOM.on(item, 'dragleave', () => {
-                item.classList.remove('drag-over');
+            DOM.on(item, 'dragleave', (e) => {
+                // 只有当离开整个 item 时才移除样式
+                if (!item.contains(e.relatedTarget)) {
+                    item.classList.remove('drag-over');
+                }
             });
 
             DOM.on(item, 'drop', (e) => {
@@ -732,7 +735,9 @@ const FrameStandardizerApp = {
                 item.classList.remove('drag-over');
 
                 const toIndex = parseInt(item.dataset.index);
-                this._reorderAlignBlocks(this._dragState.fromIndex, toIndex);
+                if (!isNaN(toIndex) && this._dragState.fromIndex !== -1) {
+                    this._reorderAlignBlocks(this._dragState.fromIndex, toIndex);
+                }
             });
         });
     },
@@ -779,9 +784,15 @@ const FrameStandardizerApp = {
     _reorderAlignBlocks(fromIndex, toIndex) {
         if (fromIndex === -1 || fromIndex === toIndex) return;
 
+        // 关键修正：当向后拖时，删除元素后目标索引需要-1
+        let actualToIndex = toIndex;
+        if (fromIndex < toIndex) {
+            actualToIndex = toIndex - 1;
+        }
+
         // 重新排序
         const [moved] = this._blocks.splice(fromIndex, 1);
-        this._blocks.splice(toIndex, 0, moved);
+        this._blocks.splice(actualToIndex, 0, moved);
 
         // 更新索引
         this._blocks.forEach((block, i) => {
@@ -818,15 +829,23 @@ const FrameStandardizerApp = {
     },
 
     /**
-     * 精灵表间距变化
+     * 扩展距离变化
      */
-    _onSheetSpacingChange() {
-        const spacing = parseInt(this._elements.sheetSpacing.value) || 0;
-        SpriteSheetGenerator.setSpacing(spacing);
+    _onExtendChange() {
+        const extend = {
+            horizontal: parseInt(this._elements.extendHorizontal.value) || 0,
+            vertical: parseInt(this._elements.extendVertical.value) || 0
+        };
+
+        // 更新 FrameAligner（会触发重新计算 maxSize 和 pivot）
+        FrameAligner.setExtend(extend);
+
+        // 更新精灵表预览
         this._updateSheetSizeInfo();
 
         if (this._state === 'aligned' || this._state === 'generated') {
-            this._previewSpriteSheet();
+            // 重新计算对齐（因为 maxSize 已改变）
+            this._calculateAlignment();
         }
     },
 
@@ -840,13 +859,18 @@ const FrameStandardizerApp = {
         if (!result) return;
 
         const cols = parseInt(this._elements.sheetColsInput.value) || 4;
-        const spacing = parseInt(this._elements.sheetSpacing.value) || 0;
         const rows = Math.ceil(this._blocks.length / cols);
 
-        const outputWidth = cols * (result.maxSize.width + spacing) - spacing;
-        const outputHeight = rows * (result.maxSize.height + spacing) - spacing;
+        // maxSize 已包含扩展距离
+        const outputWidth = cols * result.maxSize.width;
+        const outputHeight = rows * result.maxSize.height;
 
-        this._elements.sheetSizeInfo.innerHTML = `<span>输出尺寸: ${outputWidth} × ${outputHeight} (${cols}列 × ${rows}行)</span>`;
+        const extend = FrameAligner.getExtend();
+        const extendInfo = extend.horizontal > 0 || extend.vertical > 0
+            ? ` (扩展: ${extend.horizontal}×${extend.vertical})`
+            : '';
+
+        this._elements.sheetSizeInfo.innerHTML = `<span>输出尺寸: ${outputWidth} × ${outputHeight} (${cols}列 × ${rows}行)${extendInfo}</span>`;
     },
 
     /**
@@ -892,9 +916,11 @@ const FrameStandardizerApp = {
      */
     _updateSheetPreviewZoom(scale) {
         const canvas = this._elements.sheetPreviewCanvas;
-        if (canvas) {
-            canvas.style.transform = `scale(${scale})`;
-            canvas.style.transformOrigin = 'center center';
+        if (canvas && canvas.width && canvas.height) {
+            // 直接设置 canvas 的 CSS 尺寸，不使用 transform
+            // 这样滚动容器可以正确计算滚动范围
+            canvas.style.width = `${canvas.width * scale}px`;
+            canvas.style.height = `${canvas.height * scale}px`;
         }
     },
 

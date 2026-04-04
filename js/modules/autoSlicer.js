@@ -53,14 +53,27 @@ const AutoSlicer = {
         const regions = this._detectAllRegions(imageData, config);
 
         // 转换坐标（相对于原图）
-        const adjustedRegions = regions.map(region => ({
-            x: region.x + bounds.x,
-            y: region.y + bounds.y,
-            width: region.width,
-            height: region.height,
-            confidence: region.confidence,
-            pixels: region.pixels
-        }));
+        const adjustedRegions = regions.map(region => {
+            // 转换像素坐标到原图坐标系
+            let adjustedPixelCoords = null;
+            if (region.pixelCoords && region.pixelCoords.size > 0) {
+                adjustedPixelCoords = new Set();
+                for (const coord of region.pixelCoords) {
+                    const [px, py] = coord.split(',').map(Number);
+                    adjustedPixelCoords.add(`${px + bounds.x},${py + bounds.y}`);
+                }
+            }
+
+            return {
+                x: region.x + bounds.x,
+                y: region.y + bounds.y,
+                width: region.width,
+                height: region.height,
+                confidence: region.confidence,
+                pixels: region.pixels,
+                pixelCoords: adjustedPixelCoords
+            };
+        });
 
         return this._createBlocksFromRegions(source, adjustedRegions);
     },
@@ -152,6 +165,7 @@ const AutoSlicer = {
                             width: Math.min(width - region.minX + padding, region.maxX - region.minX + 1 + padding * 2),
                             height: Math.min(height - region.minY + padding, region.maxY - region.minY + 1 + padding * 2),
                             pixels: region.pixels,
+                            pixelCoords: region.pixelCoords, // 传递像素坐标集合
                             confidence: Math.min(1, region.pixels / ((region.maxX - region.minX + 1) * (region.maxY - region.minY + 1)))
                         });
                     }
@@ -159,8 +173,17 @@ const AutoSlicer = {
             }
         }
 
-        // 按区域大小排序
-        regions.sort((a, b) => b.pixels - a.pixels);
+        // 按位置排序（从左到右，从上到下）
+        // 动态计算行阈值：基于块的平均高度
+        const avgHeight = regions.reduce((sum, r) => sum + (r.height || (r.maxY - r.minY + 1)), 0) / regions.length || 16;
+        const rowThreshold = Math.max(avgHeight * 0.5, 1); // 至少为1像素
+
+        regions.sort((a, b) => {
+            const rowA = Math.floor(a.y / rowThreshold);
+            const rowB = Math.floor(b.y / rowThreshold);
+            if (rowA !== rowB) return rowA - rowB;
+            return a.x - b.x;
+        });
         return regions;
     },
 
@@ -221,6 +244,9 @@ const AutoSlicer = {
                 width: region.width,
                 height: region.height
             },
+
+            // 像素坐标集合（用于精确裁剪）
+            pixelCoords: region.pixelCoords || null,
 
             // 对齐偏移（后续计算）
             pivot: null,
@@ -597,7 +623,7 @@ const AutoSlicer = {
      * @param {Object} imageData - 像素数据
      * @param {Object} bgColor - 背景色
      * @param {number} padding - 边距
-     * @returns {Array} 区域数组 [{ x, y, width, height, confidence }, ...]
+     * @returns {Array} 区域数组 [{ x, y, width, height, confidence, pixelCoords }, ...]
      */
     _detectMultipleRegions(imageData, bgColor, padding = 0) {
         const { width, height, data } = imageData;
@@ -640,6 +666,7 @@ const AutoSlicer = {
                             width: Math.min(width - region.minX + padding, region.maxX - region.minX + 1 + padding * 2),
                             height: Math.min(height - region.minY + padding, region.maxY - region.minY + 1 + padding * 2),
                             pixels: region.pixels,
+                            pixelCoords: region.pixelCoords, // 传递像素坐标集合
                             confidence: Math.min(1, region.pixels / ((region.maxX - region.minX + 1) * (region.maxY - region.minY + 1)))
                         });
                     }
@@ -647,8 +674,17 @@ const AutoSlicer = {
             }
         }
 
-        // 按区域大小排序（大的在前）
-        regions.sort((a, b) => b.pixels - a.pixels);
+        // 按位置排序（从左到右，从上到下）
+        // 动态计算行阈值：基于块的平均高度
+        const avgHeight = regions.reduce((sum, r) => sum + (r.height || (r.maxY - r.minY + 1)), 0) / regions.length || 16;
+        const rowThreshold = Math.max(avgHeight * 0.5, 1); // 至少为1像素
+
+        regions.sort((a, b) => {
+            const rowA = Math.floor(a.y / rowThreshold);
+            const rowB = Math.floor(b.y / rowThreshold);
+            if (rowA !== rowB) return rowA - rowB;
+            return a.x - b.x;
+        });
 
         return regions;
     },
@@ -662,12 +698,13 @@ const AutoSlicer = {
      * @param {number} startX - 起始X坐标
      * @param {number} startY - 起始Y坐标
      * @param {number} label - 当前标签
-     * @returns {Object} 区域边界信息 { minX, maxX, minY, maxY, pixels }
+     * @returns {Object} 区域边界信息 { minX, maxX, minY, maxY, pixels, pixelCoords }
      */
     _floodFillRegion(mask, labels, width, height, startX, startY, label) {
         const stack = [[startX, startY]];
         let minX = startX, maxX = startX, minY = startY, maxY = startY;
         let pixels = 0;
+        const pixelCoords = new Set(); // 存储属于该区域的所有像素坐标
 
         while (stack.length > 0) {
             const [x, y] = stack.pop();
@@ -678,6 +715,7 @@ const AutoSlicer = {
 
             labels[idx] = label;
             pixels++;
+            pixelCoords.add(`${x},${y}`); // 记录像素坐标
             minX = Math.min(minX, x);
             maxX = Math.max(maxX, x);
             minY = Math.min(minY, y);
@@ -687,7 +725,7 @@ const AutoSlicer = {
             stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
         }
 
-        return { minX, maxX, minY, maxY, pixels };
+        return { minX, maxX, minY, maxY, pixels, pixelCoords };
     },
 
     /**
@@ -699,19 +737,62 @@ const AutoSlicer = {
     async splitFrameIntoRegions(frame, regions) {
         const newFrames = [];
 
+        // 先获取原图的像素数据
+        const sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = frame.image.width;
+        sourceCanvas.height = frame.image.height;
+        const sourceCtx = sourceCanvas.getContext('2d');
+        sourceCtx.drawImage(frame.image, 0, 0);
+        const sourceImageData = sourceCtx.getImageData(0, 0, frame.image.width, frame.image.height);
+
         for (let i = 0; i < regions.length; i++) {
             const region = regions[i];
 
-            // 创建新画布裁剪区域
+            // 创建新画布
             const canvas = document.createElement('canvas');
             canvas.width = region.width;
             canvas.height = region.height;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(
-                frame.image,
-                region.x, region.y, region.width, region.height,
-                0, 0, region.width, region.height
-            );
+
+            // 创建输出像素数据（初始全透明）
+            const outputData = ctx.createImageData(region.width, region.height);
+
+            // 如果有像素坐标集合，只复制属于该区域的像素
+            if (region.pixelCoords && region.pixelCoords.size > 0) {
+                for (const coord of region.pixelCoords) {
+                    const [px, py] = coord.split(',').map(Number);
+                    const localX = px - region.x;
+                    const localY = py - region.y;
+
+                    // 确保坐标在输出范围内
+                    if (localX >= 0 && localX < region.width && localY >= 0 && localY < region.height) {
+                        const srcIdx = (py * frame.image.width + px) * 4;
+                        const dstIdx = (localY * region.width + localX) * 4;
+
+                        outputData.data[dstIdx] = sourceImageData.data[srcIdx];
+                        outputData.data[dstIdx + 1] = sourceImageData.data[srcIdx + 1];
+                        outputData.data[dstIdx + 2] = sourceImageData.data[srcIdx + 2];
+                        outputData.data[dstIdx + 3] = sourceImageData.data[srcIdx + 3];
+                    }
+                }
+            } else {
+                // 没有像素坐标集合时，回退到矩形裁剪
+                for (let y = 0; y < region.height; y++) {
+                    for (let x = 0; x < region.width; x++) {
+                        const srcX = region.x + x;
+                        const srcY = region.y + y;
+                        const srcIdx = (srcY * frame.image.width + srcX) * 4;
+                        const dstIdx = (y * region.width + x) * 4;
+
+                        outputData.data[dstIdx] = sourceImageData.data[srcIdx];
+                        outputData.data[dstIdx + 1] = sourceImageData.data[srcIdx + 1];
+                        outputData.data[dstIdx + 2] = sourceImageData.data[srcIdx + 2];
+                        outputData.data[dstIdx + 3] = sourceImageData.data[srcIdx + 3];
+                    }
+                }
+            }
+
+            ctx.putImageData(outputData, 0, 0);
 
             // 创建新图片
             const newImage = await new Promise((resolve) => {
@@ -773,5 +854,84 @@ const AutoSlicer = {
                 }
             });
         }
+    },
+
+    /**
+     * 将区域精确渲染到 Canvas（静态方法，供其他模块调用）
+     * @param {HTMLImageElement} image - 源图像
+     * @param {Object} region - 区域信息 { x, y, width, height }
+     * @param {Set<string>} pixelCoords - 像素坐标集合（可选）
+     * @param {CanvasRenderingContext2D} ctx - 目标 Canvas 上下文
+     * @param {number} dx - 目标 X 坐标
+     * @param {number} dy - 目标 Y 坐标
+     */
+    renderRegionToCanvas(image, region, pixelCoords, ctx, dx, dy) {
+        if (!region || !image) return;
+
+        // 如果有像素坐标集合，使用精确绘制
+        if (pixelCoords && pixelCoords.size > 0) {
+            // 创建临时画布获取原图像素数据
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = image.width;
+            tempCanvas.height = image.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(image, 0, 0);
+            const sourceData = tempCtx.getImageData(0, 0, image.width, image.height);
+
+            // 创建输出像素数据
+            const outputData = ctx.createImageData(region.width, region.height);
+
+            // 只复制属于该区域的像素
+            for (const coord of pixelCoords) {
+                const [px, py] = coord.split(',').map(Number);
+                const localX = px - region.x;
+                const localY = py - region.y;
+
+                if (localX >= 0 && localX < region.width && localY >= 0 && localY < region.height) {
+                    const srcIdx = (py * image.width + px) * 4;
+                    const dstIdx = (localY * region.width + localX) * 4;
+
+                    outputData.data[dstIdx] = sourceData.data[srcIdx];
+                    outputData.data[dstIdx + 1] = sourceData.data[srcIdx + 1];
+                    outputData.data[dstIdx + 2] = sourceData.data[srcIdx + 2];
+                    outputData.data[dstIdx + 3] = sourceData.data[srcIdx + 3];
+                }
+            }
+
+            // 创建临时画布存放输出数据
+            const outputCanvas = document.createElement('canvas');
+            outputCanvas.width = region.width;
+            outputCanvas.height = region.height;
+            const outputCtx = outputCanvas.getContext('2d');
+            outputCtx.putImageData(outputData, 0, 0);
+
+            // 绘制到目标位置
+            ctx.drawImage(outputCanvas, dx, dy);
+        } else {
+            // 没有像素坐标集合时，回退到矩形绘制
+            ctx.drawImage(
+                image,
+                region.x, region.y, region.width, region.height,
+                dx, dy, region.width, region.height
+            );
+        }
+    },
+
+    /**
+     * 创建区域的精确裁剪 Canvas（静态方法，供其他模块调用）
+     * @param {HTMLImageElement} image - 源图像
+     * @param {Object} region - 区域信息 { x, y, width, height }
+     * @param {Set<string>} pixelCoords - 像素坐标集合（可选）
+     * @returns {HTMLCanvasElement} 裁剪后的 Canvas
+     */
+    createCroppedCanvas(image, region, pixelCoords) {
+        const canvas = document.createElement('canvas');
+        canvas.width = region.width;
+        canvas.height = region.height;
+        const ctx = canvas.getContext('2d');
+
+        this.renderRegionToCanvas(image, region, pixelCoords, ctx, 0, 0);
+
+        return canvas;
     }
 };

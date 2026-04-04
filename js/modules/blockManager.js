@@ -202,9 +202,10 @@ const BlockManager = {
      * @param {Object} source - 源图对象
      * @param {Object} region - 区域 { x, y, width, height }
      * @param {number} index - 索引
+     * @param {Set<string>} pixelCoords - 像素坐标集合（可选）
      * @returns {Object} Block 对象
      */
-    createBlock(source, region, index = 0) {
+    createBlock(source, region, index = 0, pixelCoords = null) {
         const baseName = source.name ? source.name.replace(/\.[^.]+$/, '') : 'sprite';
 
         return {
@@ -218,6 +219,9 @@ const BlockManager = {
 
             // 检测到的区域
             region: { ...region },
+
+            // 像素坐标集合（用于精确裁剪）
+            pixelCoords: pixelCoords,
 
             // 对齐偏移（后续计算）
             pivot: null,
@@ -239,7 +243,7 @@ const BlockManager = {
      * @returns {Array} Block 数组
      */
     createBlocks(source, regions) {
-        return regions.map((region, index) => this.createBlock(source, region, index));
+        return regions.map((region, index) => this.createBlock(source, region, index, region.pixelCoords || null));
     },
 
     /**

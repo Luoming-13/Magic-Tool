@@ -12,7 +12,6 @@ const SpriteSheetGenerator = {
         rows: null,           // 行数（自动计算）
         cellWidth: null,      // 单元格宽度（自动）
         cellHeight: null,     // 单元格高度（自动）
-        spacing: 0,           // 间距
         format: 'png'         // 导出格式
     },
 
@@ -49,18 +48,18 @@ const SpriteSheetGenerator = {
 
         const items = this._items;
         const maxSize = this._maxSize;
-        const { cols, spacing } = this._config;
+        const { cols } = this._config;
 
         // 计算行列数
         const totalItems = items.length;
         const actualCols = Math.min(cols, totalItems);
         const actualRows = Math.ceil(totalItems / actualCols);
 
-        // 计算输出尺寸
-        const cellW = maxSize.width + spacing;
-        const cellH = maxSize.height + spacing;
-        const outputWidth = actualCols * cellW - spacing;
-        const outputHeight = actualRows * cellH - spacing;
+        // 计算输出尺寸（maxSize 已包含扩展距离）
+        const cellW = maxSize.width;
+        const cellH = maxSize.height;
+        const outputWidth = actualCols * cellW;
+        const outputHeight = actualRows * cellH;
 
         // 创建精灵表 Canvas
         const canvas = document.createElement('canvas');
@@ -86,14 +85,19 @@ const SpriteSheetGenerator = {
             const x = col * cellW + (item.pivot ? item.pivot.offsetX : 0);
             const y = row * cellH + (item.pivot ? item.pivot.offsetY : 0);
 
-            // 绘制
-            ctx.drawImage(
-                image,
-                item.region.x, item.region.y,
-                item.region.width, item.region.height,
-                x, y,
-                item.region.width, item.region.height
-            );
+            // 使用精确绘制（如果有 pixelCoords）
+            if (typeof AutoSlicer !== 'undefined' && AutoSlicer.renderRegionToCanvas) {
+                AutoSlicer.renderRegionToCanvas(image, item.region, item.pixelCoords, ctx, x, y);
+            } else {
+                // 回退到矩形绘制
+                ctx.drawImage(
+                    image,
+                    item.region.x, item.region.y,
+                    item.region.width, item.region.height,
+                    x, y,
+                    item.region.width, item.region.height
+                );
+            }
         });
 
         // 存储结果
@@ -164,11 +168,12 @@ const SpriteSheetGenerator = {
     },
 
     /**
-     * 设置间距
+     * 设置间距（已废弃，扩展距离由 FrameAligner 处理）
      * @param {number} spacing - 间距值
+     * @deprecated
      */
     setSpacing(spacing) {
-        this._config.spacing = Math.max(0, parseInt(spacing) || 0);
+        // 保留空方法以向后兼容
     },
 
     /**
@@ -199,16 +204,17 @@ const SpriteSheetGenerator = {
             return null;
         }
 
-        const { cols, spacing } = this._config;
+        const { cols } = this._config;
         const actualCols = Math.min(cols, itemCount);
         const actualRows = Math.ceil(itemCount / actualCols);
 
-        const cellW = this._maxSize.width + spacing;
-        const cellH = this._maxSize.height + spacing;
+        // maxSize 已包含扩展距离
+        const cellW = this._maxSize.width;
+        const cellH = this._maxSize.height;
 
         return {
-            width: actualCols * cellW - spacing,
-            height: actualRows * cellH - spacing,
+            width: actualCols * cellW,
+            height: actualRows * cellH,
             cols: actualCols,
             rows: actualRows
         };

@@ -101,7 +101,7 @@
 
 /* ===== Preview Container Zoomable ===== */
 .preview-container--zoomable {
-    max-height: 400px;
+    max-height: none;
     overflow: auto;
     /* 保持继承父类的 align-items: center，实现内容居中 */
 }
@@ -113,7 +113,7 @@
 
 /* ===== Piece Grid Zoomable ===== */
 .piece-grid--zoomable {
-    max-height: 400px;
+    max-height: none;
     overflow: auto;
 }
 
@@ -494,6 +494,17 @@
     background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, var(--pixel-bg-card) 30%);
 }
 
+.toast--info {
+    border-left: 5px solid var(--pixel-primary);
+    background: linear-gradient(90deg, rgba(166, 98, 63, 0.08) 0%, var(--pixel-bg-card) 30%);
+}
+
+.toast--fade-out {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s ease;
+}
+
 .toast__icon {
     font-size: 1.25rem;
 }
@@ -639,4 +650,173 @@
     border-radius: var(--pixel-radius-full);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+/* ===== Card Section ===== */
+.card-section {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 3px solid var(--pixel-border-divider);
+}
+
+.card-section:last-child {
+    border-bottom: none;
+}
+
+.card-section__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--pixel-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 1rem;
+}
+
+/* ===== Upload Zone in Card ===== */
+.card-section .upload-zone {
+    border-color: var(--pixel-border);
+    background: var(--pixel-bg-card);
+    margin: 0;
+}
+
+.card-section .upload-zone:hover {
+    border-color: var(--pixel-primary);
+    background: rgba(255, 107, 53, 0.02);
+}
+
+/* ===== Control Group in Card ===== */
+.card-section .control-group__input {
+    background: var(--pixel-bg-card);
+    border-color: var(--pixel-border);
+}
+
+.card-section .control-group__input:focus {
+    border-color: var(--pixel-primary);
+}
+
+/* ===== Slider in Card ===== */
+.card-section .slider {
+    background: var(--pixel-border);
+}
+
+/* ===== Radio Group in Card ===== */
+.card-section .radio-label input[type="radio"] {
+    accent-color: var(--pixel-primary);
+}
+
+/* ===== Button Group in Card ===== */
+.card-section .btn-group {
+    margin-top: 1rem;
+}
+
+/* ===== Button Full Width ===== */
+.btn--full {
+    width: 100%;
+}
+
+/* ===== Mode Nav ===== */
+.mode-nav {
+    display: flex;
+    border-bottom: 3px solid var(--pixel-border-divider);
+}
+
+.mode-nav__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--pixel-transition);
+    color: var(--pixel-text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 700;
+    position: relative;
+    margin-bottom: -3px;
+}
+
+.mode-nav__btn:hover {
+    color: var(--pixel-primary);
+    background: rgba(255, 107, 53, 0.03);
+}
+
+.mode-nav__btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.mode-nav__btn--active {
+    color: var(--pixel-primary);
+    border-bottom-color: var(--pixel-primary);
+    background: rgba(255, 107, 53, 0.05);
+}
+
+/* ===== Checkbox Wrapper ===== */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--pixel-primary);
+    cursor: pointer;
+}
+
+.checkbox-wrapper span {
+    font-size: 0.875rem;
+}
+
+/* ===== Hint Text ===== */
+.hint-text {
+    font-size: 0.75rem;
+    color: var(--pixel-text-secondary);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+/* ===== Section Title ===== */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--pixel-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+
+/* ===== Preview Placeholder ===== */
+.preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    color: var(--pixel-text-muted);
+}
+
+.preview-placeholder svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.preview-placeholder p {
+    font-size: 0.875rem;
+    font-weight: 500;
 }

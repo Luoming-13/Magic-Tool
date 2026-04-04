@@ -16,7 +16,10 @@ const FrameAligner = {
     // 配置
     _config: {
         pivotType: 'bottom-center',       // 当前选中的锚点类型
-        spacing: 0                        // 间距
+        extend: {
+            horizontal: 0,                // 左右扩展距离
+            vertical: 0                   // 上下扩展距离
+        }
     },
 
     // 计算结果
@@ -84,9 +87,10 @@ const FrameAligner = {
             }
         }
 
-        // 确保最小尺寸
-        maxWidth = Math.max(1, maxWidth);
-        maxHeight = Math.max(1, maxHeight);
+        // 应用扩展距离
+        const { horizontal, vertical } = this._config.extend;
+        maxWidth = Math.max(1, maxWidth + horizontal * 2);  // 左右对称扩展
+        maxHeight = Math.max(1, maxHeight + vertical * 2);   // 上下扩展
 
         return { width: maxWidth, height: maxHeight };
     },
@@ -104,6 +108,11 @@ const FrameAligner = {
 
         const { width, height } = region;
         const { width: maxW, height: maxH } = maxSize;
+        const { horizontal, vertical } = this._config.extend;
+
+        // 计算基础尺寸（不包含扩展）
+        const baseMaxW = maxW - horizontal * 2;
+        const baseMaxH = maxH - vertical * 2;
 
         let offsetX = 0;
         let offsetY = 0;
@@ -111,26 +120,29 @@ const FrameAligner = {
         switch (this._config.pivotType) {
             case 'bottom-center':
                 // 底部居中：X 居中，Y 底部对齐
-                offsetX = Math.floor((maxW - width) / 2);
-                offsetY = maxH - height;
+                // 扩展距离：向上扩展，所以 offsetY 需要加上 vertical
+                offsetX = Math.floor((baseMaxW - width) / 2) + horizontal;
+                offsetY = (baseMaxH - height) + vertical;  // 底部对齐 + 向上扩展
                 break;
 
             case 'center-center':
                 // 正中心：X 和 Y 都居中
-                offsetX = Math.floor((maxW - width) / 2);
-                offsetY = Math.floor((maxH - height) / 2);
+                // 扩展距离：上下对称扩展
+                offsetX = Math.floor((baseMaxW - width) / 2) + horizontal;
+                offsetY = Math.floor((baseMaxH - height) / 2) + vertical;
                 break;
 
             case 'top-left':
                 // 左上角：不需要偏移
-                offsetX = 0;
-                offsetY = 0;
+                // 扩展距离：向下扩展，所以 offsetY 保持为 vertical
+                offsetX = horizontal;
+                offsetY = vertical;
                 break;
 
             default:
                 // 默认底部居中
-                offsetX = Math.floor((maxW - width) / 2);
-                offsetY = maxH - height;
+                offsetX = Math.floor((baseMaxW - width) / 2) + horizontal;
+                offsetY = (baseMaxH - height) + vertical;
         }
 
         return { offsetX, offsetY };
@@ -161,12 +173,17 @@ const FrameAligner = {
         // 清除透明
         ctx.clearRect(0, 0, maxSize.width, maxSize.height);
 
-        // 绘制对齐后的内容
-        ctx.drawImage(
-            image,
-            region.x, region.y, region.width, region.height,
-            offsetX, offsetY, region.width, region.height
-        );
+        // 使用精确绘制（如果有 pixelCoords）
+        if (typeof AutoSlicer !== 'undefined' && AutoSlicer.renderRegionToCanvas) {
+            AutoSlicer.renderRegionToCanvas(image, region, item.pixelCoords, ctx, offsetX, offsetY);
+        } else {
+            // 回退到矩形绘制
+            ctx.drawImage(
+                image,
+                region.x, region.y, region.width, region.height,
+                offsetX, offsetY, region.width, region.height
+            );
+        }
 
         return canvas;
     },
@@ -221,8 +238,8 @@ const FrameAligner = {
             this._config.pivotType = type;
 
             // 如果已有结果，重新计算
-            if (this._result && this._result.frames) {
-                this.calculate(this._result.frames);
+            if (this._result && this._result.blocks) {
+                this.calculate(this._result.blocks);
             }
         }
     },
@@ -236,11 +253,27 @@ const FrameAligner = {
     },
 
     /**
-     * 设置间距
-     * @param {number} spacing - 间距值
+     * 设置扩展距离
+     * @param {Object} extend - 扩展距离 { horizontal, vertical }
      */
-    setSpacing(spacing) {
-        this._config.spacing = Math.max(0, parseInt(spacing) || 0);
+    setExtend(extend) {
+        this._config.extend = {
+            horizontal: Math.max(0, parseInt(extend.horizontal) || 0),
+            vertical: Math.max(0, parseInt(extend.vertical) || 0)
+        };
+
+        // 如果已有结果，重新计算
+        if (this._result && this._result.blocks) {
+            this.calculate(this._result.blocks);
+        }
+    },
+
+    /**
+     * 获取扩展距离
+     * @returns {Object} 扩展距离 { horizontal, vertical }
+     */
+    getExtend() {
+        return { ...this._config.extend };
     },
 
     /**

@@ -21,14 +21,27 @@ const ManualSelector = {
 
     // 交互状态
     _interaction: {
-        mode: null,           // 'draw' | 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br'
+        mode: null,           // 'draw' | 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br' | 'pan'
         startX: 0,
         startY: 0,
         originalRegion: null
     },
 
+    // 平移状态
+    _panState: {
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        offsetX: 0,
+        offsetY: 0
+    },
+
     // 缩放级别
     _zoom: 1,
+
+    // 包装器元素
+    _wrapper: null,
+    _container: null,
 
     // 配置
     _config: {
@@ -62,7 +75,10 @@ const ManualSelector = {
         }
 
         this._ctx = this._canvas.getContext('2d');
+        this._wrapper = this._canvas.parentElement;  // preview-wrapper
+        this._container = this._wrapper?.parentElement;  // preview-container
         this._bindEvents();
+        this._bindPanEvents();
 
         console.log('ManualSelector - 初始化完成');
     },
@@ -87,6 +103,83 @@ const ManualSelector = {
     },
 
     /**
+     * 绑定平移事件（在容器上监听，按住空格键或中键拖拽）
+     */
+    _bindPanEvents() {
+        if (!this._container) return;
+
+        // 空格键状态
+        let spacePressed = false;
+
+        DOM.on(document, 'keydown', (e) => {
+            if (e.code === 'Space' && !spacePressed) {
+                spacePressed = true;
+                this._canvas.style.cursor = 'grab';
+            }
+        });
+
+        DOM.on(document, 'keyup', (e) => {
+            if (e.code === 'Space') {
+                spacePressed = false;
+                this._canvas.style.cursor = 'crosshair';
+            }
+        });
+
+        // 鼠标按下 - 开始平移
+        DOM.on(this._canvas, 'mousedown', (e) => {
+            // 空格键或中键触发平移
+            if (spacePressed || e.button === 1) {
+                e.preventDefault();
+                this._panState.isDragging = true;
+                this._panState.startX = e.clientX - this._panState.offsetX;
+                this._panState.startY = e.clientY - this._panState.offsetY;
+                this._canvas.style.cursor = 'grabbing';
+                DOM.addClass(this._wrapper, 'dragging');
+            }
+        });
+
+        // 鼠标移动 - 平移中
+        DOM.on(document, 'mousemove', (e) => {
+            if (!this._panState.isDragging) return;
+            this._panState.offsetX = e.clientX - this._panState.startX;
+            this._panState.offsetY = e.clientY - this._panState.startY;
+            this._updateTransform();
+        });
+
+        // 鼠标释放 - 结束平移
+        DOM.on(document, 'mouseup', () => {
+            if (this._panState.isDragging) {
+                this._panState.isDragging = false;
+                this._canvas.style.cursor = spacePressed ? 'grab' : 'crosshair';
+                DOM.removeClass(this._wrapper, 'dragging');
+            }
+        });
+    },
+
+    /**
+     * 更新变换（缩放+平移）
+     */
+    _updateTransform() {
+        if (!this._wrapper) return;
+        const { offsetX, offsetY } = this._panState;
+        this._wrapper.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${this._zoom})`;
+    },
+
+    /**
+     * 重置平移状态
+     */
+    resetPan() {
+        this._panState = {
+            isDragging: false,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0
+        };
+        this._updateTransform();
+    },
+
+    /**
      * 设置源图
      * @param {Object} source - 源图数据对象 { id, name, image, width, height }
      */
@@ -95,10 +188,18 @@ const ManualSelector = {
         this._existingBlocks = [];
         this._currentRegion = null;
 
+        // 重置平移状态
+        this.resetPan();
+
         if (source) {
-            // 设置 Canvas 尺寸为源图尺寸
+            // 设置 Canvas 内部尺寸为源图尺寸
             this._canvas.width = source.width;
             this._canvas.height = source.height;
+            // CSS 尺寸保持为源图尺寸，缩放通过 transform 实现
+            this._canvas.style.width = `${source.width}px`;
+            this._canvas.style.height = `${source.height}px`;
+            // 应用缩放变换
+            this._updateTransform();
         }
 
         this.render();
@@ -127,6 +228,9 @@ const ManualSelector = {
      */
     setZoom(zoom) {
         this._zoom = Math.max(0.1, Math.min(3, zoom));
+
+        // 通过 transform 实现缩放，而不是修改 CSS 尺寸
+        this._updateTransform();
         this.render();
     },
 
@@ -169,6 +273,10 @@ const ManualSelector = {
         // 清除画布
         ctx.clearRect(0, 0, width, height);
 
+        // 应用缩放
+        ctx.save();
+        ctx.scale(this._zoom, this._zoom);
+
         // 绘制源图
         if (this._source) {
             ctx.drawImage(this._source.image, 0, 0);
@@ -183,6 +291,8 @@ const ManualSelector = {
         if (this._currentRegion && this._currentRegion.width > 0 && this._currentRegion.height > 0) {
             this._drawCurrentSelection();
         }
+
+        ctx.restore();
     },
 
     /**
@@ -333,13 +443,11 @@ const ManualSelector = {
      */
     _getCanvasCoords(e) {
         const rect = this._canvas.getBoundingClientRect();
-        const scaleX = this._canvas.width / rect.width;
-        const scaleY = this._canvas.height / rect.height;
+        // 考虑缩放因素：屏幕坐标需要除以缩放比例
+        const x = (e.clientX - rect.left) / this._zoom;
+        const y = (e.clientY - rect.top) / this._zoom;
 
-        return {
-            x: (e.clientX - rect.left) * scaleX,
-            y: (e.clientY - rect.top) * scaleY
-        };
+        return { x, y };
     },
 
     /**

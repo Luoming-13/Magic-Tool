@@ -165,10 +165,19 @@
                                 <input type="range" id="sheetColsSlider" class="slider" value="4" min="1" max="16">
                             </div>
                         </label>
-                        <label class="control-group__label">
-                            <span>间距 (px)</span>
-                            <input type="number" id="sheetSpacing" class="control-group__input" value="0" min="0" max="100">
-                        </label>
+                        <div class="control-group__label">
+                            <span class="control-group__label-title">扩展距离</span>
+                            <div class="extend-inputs">
+                                <label class="extend-inputs__item">
+                                    <span>左右</span>
+                                    <input type="number" id="extendHorizontal" class="control-group__input" value="0" min="0" max="100">
+                                </label>
+                                <label class="extend-inputs__item">
+                                    <span>上下</span>
+                                    <input type="number" id="extendVertical" class="control-group__input" value="0" min="0" max="100">
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div class="output-size-info" id="sheetSizeInfo">
                         <span>输出尺寸: --</span>
@@ -247,7 +256,6 @@
                 <div class="preview-section" id="alignPreviewSection">
                     <h2 class="section-title">
                         对齐预览
-                        <span class="frame-list-count" id="alignBlockCount">0 个</span>
                         <button class="btn-clear" id="clearAlignBlocksBtn">清空</button>
                         <div class="alignment-info">
                             <div class="pivot-dropdown" id="pivotDropdown">
