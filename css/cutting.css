@@ -3,10 +3,16 @@
    序列帧标准化重组功能样式
    ===================== */
 
+/* ===== 缝线边框效果 - 顶部留出 mode-nav 空间 ===== */
+.control-card::before {
+    inset: 60px 8px 8px 8px;
+    border-radius: calc(var(--pixel-card-radius, 16px) - 8px);
+}
+
 /* ===== Card Section ===== */
 .card-section {
     padding: 1.25rem 1.5rem;
-    border-bottom: 3px solid var(--pixel-border-divider);
+    border-bottom: none;
 }
 
 .card-section:last-child {
@@ -97,7 +103,7 @@
 /* ===== Upload Zone in Card ===== */
 .card-section .upload-zone {
     border-color: var(--pixel-border);
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
 }
 
 .card-section .upload-zone:hover {
@@ -107,7 +113,7 @@
 
 /* ===== Control Group in Card ===== */
 .card-section .control-group__input {
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-color: var(--pixel-border);
 }
 
@@ -133,7 +139,11 @@
 /* ===== Mode Nav ===== */
 .mode-nav {
     display: flex;
-    border-bottom: 3px solid var(--pixel-border-divider);
+    margin: var(--pixel-card-border-offset);
+    margin-bottom: 0;
+    border-bottom: 3px dashed var(--pixel-card-border-dashed);
+    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
+    overflow: hidden;
 }
 
 .mode-nav__btn {
@@ -154,11 +164,16 @@
     font-weight: 700;
     position: relative;
     margin-bottom: -3px;
+    z-index: 2;
 }
 
 .mode-nav__btn:hover {
     color: var(--pixel-primary);
-    background: rgba(255, 107, 53, 0.03);
+}
+
+.mode-nav__btn:hover::before {
+    opacity: 1;
+    background: rgba(154, 104, 101, 0.1);
 }
 
 .mode-nav__btn svg {
@@ -169,7 +184,24 @@
 .mode-nav__btn--active {
     color: var(--pixel-primary);
     border-bottom-color: var(--pixel-primary);
-    background: rgba(255, 107, 53, 0.05);
+}
+
+.mode-nav__btn--active::before {
+    opacity: 1;
+    background: rgba(154, 104, 101, 0.15);
+}
+
+/* 模式按钮圆角背景伪元素 */
+.mode-nav__btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    bottom: -3px;
+    background: transparent;
+    opacity: 0;
+    transition: background var(--pixel-transition), opacity var(--pixel-transition);
+    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
+    z-index: -1;
 }
 
 /* ===== Frame Count ===== */
@@ -179,7 +211,7 @@
     justify-content: space-between;
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-sm);
     font-size: 0.875rem;
 }
@@ -250,7 +282,7 @@
 .pivot-btn {
     width: 52px;
     height: 52px;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border: 3px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     cursor: pointer;
@@ -283,7 +315,7 @@
 /* ===== Size Display ===== */
 .size-display {
     padding: 0.5rem 0.75rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-sm);
     font-size: 0.875rem;
     font-weight: 600;
@@ -295,7 +327,7 @@
 /* ===== Output Size Info ===== */
 .output-size-info {
     padding: 0.5rem 0.75rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-sm);
     font-size: 0.875rem;
     color: var(--pixel-text-secondary);
@@ -448,7 +480,7 @@
 
 .tag {
     padding: 0.25rem 0.5rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-sm);
     font-size: 0.75rem;
     font-weight: 600;
@@ -494,7 +526,7 @@
     top: 100%;
     left: 0;
     margin-top: 0.5rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border: 2px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -634,7 +666,7 @@
     justify-content: space-between;
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-sm);
     font-size: 0.875rem;
 }
@@ -664,7 +696,7 @@
 .align-grid__item {
     position: relative;
     aspect-ratio: 1;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-md);
     border: 3px solid transparent;
     overflow: hidden;

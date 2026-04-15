@@ -192,19 +192,40 @@
 
 /* ===== Control Card ===== */
 .control-card {
-    background: var(--pixel-bg-panel);
-    border-radius: var(--pixel-radius-lg);
-    border: 3px solid var(--pixel-border);
+    background: var(--pixel-card-bg);
+    border-radius: var(--pixel-card-radius);
+    border: 4px solid transparent;
+    box-shadow: var(--pixel-card-shadow);
     padding: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    align-self: stretch;
+}
+
+/* 缝线边框效果 */
+.control-card::before {
+    content: '';
+    position: absolute;
+    inset: 60px 8px 8px 8px;
+    border: 3px dashed var(--pixel-border-dashed);
+    border-radius: calc(var(--pixel-card-radius, 16px) - 8px);
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* ===== Mode Navigation ===== */
 .mode-nav {
     display: flex;
-    border-bottom: 3px solid var(--pixel-border-divider);
+    margin: var(--pixel-card-border-offset);
+    margin-bottom: 0;
+    border-bottom: 3px dashed var(--pixel-card-border-dashed);
+    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
+    overflow: hidden;
 }
 
 .mode-nav__btn {
@@ -225,11 +246,16 @@
     font-weight: 700;
     position: relative;
     margin-bottom: -3px;
+    z-index: 2;
 }
 
 .mode-nav__btn:hover {
     color: var(--pixel-primary);
-    background: rgba(255, 107, 53, 0.03);
+}
+
+.mode-nav__btn:hover::before {
+    opacity: 1;
+    background: rgba(154, 104, 101, 0.1);
 }
 
 .mode-nav__btn svg {
@@ -240,13 +266,29 @@
 .mode-nav__btn--active {
     color: var(--pixel-primary);
     border-bottom-color: var(--pixel-primary);
-    background: rgba(255, 107, 53, 0.05);
+}
+
+.mode-nav__btn--active::before {
+    opacity: 1;
+    background: rgba(154, 104, 101, 0.15);
+}
+
+/* 模式按钮圆角背景伪元素 */
+.mode-nav__btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    bottom: -3px;
+    background: transparent;
+    opacity: 0;
+    transition: background var(--pixel-transition), opacity var(--pixel-transition);
+    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
+    z-index: -1;
 }
 
 /* ===== Card Section ===== */
 .card-section {
     padding: 1.25rem 1.5rem;
-    border-bottom: 3px solid var(--pixel-border-divider);
 }
 
 .card-section:last-child {
@@ -266,7 +308,7 @@
 /* ===== Upload Zone in Card ===== */
 .card-section .upload-zone {
     border-color: var(--pixel-border);
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
 }
 
 .card-section .upload-zone:hover {
@@ -276,7 +318,7 @@
 
 /* ===== Control Group in Card ===== */
 .card-section .control-group__input {
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-color: var(--pixel-border);
 }
 
@@ -315,7 +357,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-md);
     margin-top: 0.75rem;
     font-size: 0.8rem;
@@ -428,7 +470,7 @@
 .image-list-item {
     position: relative;
     aspect-ratio: 1;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-md);
     overflow: hidden;
     cursor: grab;
@@ -504,7 +546,7 @@
 
 .split-grid-item {
     aspect-ratio: 1;
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-radius: var(--pixel-radius-md);
     overflow: hidden;
     cursor: grab;

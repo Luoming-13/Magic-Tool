@@ -47,20 +47,28 @@
     justify-content: flex-start;
     padding: 0.75rem 1rem;
     border: 3px solid var(--pixel-border);
-    border-radius: var(--pixel-radius-md);
+    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset));
     margin-bottom: 0;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
 }
 
 .mode-nav--vertical .mode-nav__btn:hover {
     border-color: var(--pixel-primary);
-    background: rgba(255, 107, 53, 0.05);
+}
+
+.mode-nav--vertical .mode-nav__btn:hover::before {
+    opacity: 1;
+    background: rgba(154, 104, 101, 0.1);
 }
 
 .mode-nav--vertical .mode-nav__btn--active {
     border-color: var(--pixel-primary);
-    background: rgba(255, 107, 53, 0.1);
     box-shadow: var(--pixel-shadow-sm);
+}
+
+.mode-nav--vertical .mode-nav__btn--active::before {
+    opacity: 1;
+    background: rgba(154, 104, 101, 0.15);
 }
 
 /* ===== 颜色目标选择器 ===== */
@@ -99,7 +107,7 @@
     border-radius: var(--pixel-radius-sm);
     cursor: pointer;
     padding: 2px;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
 }
 
 .color-input-native::-webkit-color-swatch-wrapper {
@@ -159,7 +167,7 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 3px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     cursor: pointer;
@@ -219,7 +227,7 @@
     width: 60px;
     height: 60px;
     flex-shrink: 0;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 3px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     overflow: hidden;
@@ -296,7 +304,7 @@
     width: 60px;
     height: 60px;
     flex-shrink: 0;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 3px dashed var(--pixel-border-dashed);
     border-radius: var(--pixel-radius-md);
     cursor: pointer;
@@ -331,7 +339,7 @@
     position: fixed;
     width: 110px;
     height: 110px;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 3px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     box-shadow: var(--pixel-shadow-lg);

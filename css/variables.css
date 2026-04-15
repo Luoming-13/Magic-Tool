@@ -24,43 +24,46 @@
     --font-semibold: 600;
     --font-bold: 700;
 
-    /* ===== 主色调 - 暖橙棕 ===== */
-    --pixel-primary: #a6623f;
-    --pixel-primary-dark: #7a4830;
-    --pixel-primary-light: #c98f66;
-    --pixel-primary-lighter: #ddb89c;
+    /* ===== 主色调 - 动物森友会风格 ===== */
+    --pixel-primary: #9a6865;
+    --pixel-primary-dark: #7d5551;
+    --pixel-primary-light: #b88a86;
+    --pixel-primary-lighter: #d4b0ad;
 
-    /* ===== 强调色 - 摩卡紫 ===== */
-    --pixel-accent: #8B6B8B;
-    --pixel-accent-dark: #6B4F6B;
-    --pixel-accent-light: #AB8BAB;
+    /* ===== 滑块轨道色 ===== */
+    --pixel-slider-track: #e1b79e;
+
+    /* ===== 强调色 - 柔和色调 ===== */
+    --pixel-accent: #F4CDB8;
+    --pixel-accent-dark: #E8B89A;
+    --pixel-accent-light: #FAE0D0;
 
     /* ===== 功能色 ===== */
     --pixel-success: #7A9B6B;
-    --pixel-warning: #D4954B;
-    --pixel-error: #B85A52;
+    --pixel-warning: #E8B86D;
+    --pixel-error: #D4756A;
 
-    /* ===== 背景色（温暖米白系） ===== */
-    --pixel-bg-main: #E8DCD0;
-    --pixel-bg-card: #FAF5EE;
+    /* ===== 背景色（温暖层次）===== */
+    --pixel-bg-main: #fffcf4;
+    --pixel-bg-card: #fdf4d7; /* 已废弃，统一使用 --pixel-card-bg */
     --pixel-bg-panel: #F0E8DC;
 
-    /* ===== 文字色（浓咖啡系） ===== */
-    --pixel-text-primary: #2C1810;
-    --pixel-text-secondary: #5C3D2E;
-    --pixel-text-muted: #8B6B5A;
-    --pixel-text-light: #E8DCD0;
+    /* ===== 文字色 - 深海蓝统一 ===== */
+    --pixel-text-primary: #1a4875;
+    --pixel-text-secondary: #226977;
+    --pixel-text-muted: #5a9aab;
+    --pixel-text-light: #d0eaee;
 
-    /* ===== 边框与分割线 ===== */
-    --pixel-border: #AC927A;
-    --pixel-border-hover: #A89878;
-    --pixel-border-dashed: #C9B8A8;
-    --pixel-border-divider: #C9B8A8;
+    /* ===== 边框 - 柔和虚线风格 ===== */
+    --pixel-border: #D4C4B0;
+    --pixel-border-hover: #C4B4A0;
+    --pixel-border-dashed: #E8D8C8;
+    --pixel-border-divider: #E8D8C8;
 
-    /* ===== 阴影（温暖色调） ===== */
-    --pixel-shadow-sm: 2px 2px 0 rgba(44, 24, 16, 0.10);
-    --pixel-shadow-md: 4px 4px 0 rgba(44, 24, 16, 0.15);
-    --pixel-shadow-lg: 6px 6px 0 rgba(44, 24, 16, 0.20);
+    /* ===== 阴影 - 温暖柔和 ===== */
+    --pixel-shadow-sm: 2px 2px 0 rgba(180, 160, 130, 0.15);
+    --pixel-shadow-md: 4px 4px 0 rgba(180, 160, 130, 0.20);
+    --pixel-shadow-lg: 6px 6px 0 rgba(180, 160, 130, 0.25);
     --pixel-shadow-colored: 4px 4px 0 var(--pixel-primary);
 
     /* ===== 圆角 ===== */
@@ -79,4 +82,18 @@
     --pixel-space-md: 1rem;
     --pixel-space-lg: 1.5rem;
     --pixel-space-xl: 2rem;
+
+    /* ===== 卡片新样式 - 温馨奶油白（动物森友会风格）===== */
+    --pixel-card-bg: #FFF8E7;                    /* 温暖奶油白/浅米色 */
+    --pixel-card-shadow: 0 8px 32px rgba(180, 140, 100, 0.25);  /* 柔和浅棕色弥散阴影 */
+    --pixel-card-radius: 24px;                   /* 超大圆角 rounded-3xl */
+    --pixel-card-border-dashed: #F4CDB8;         /* 缝线边框颜色 */
+    --pixel-card-border-offset: 8px;             /* 缝线边框内边距 */
+
+    /* ===== 文字样式 ===== */
+    --pixel-text-dark: #2B4A6A;                  /* 深海蓝/藏青色（非纯黑） */
+
+    /* ===== 按钮激活状态 ===== */
+    --pixel-btn-active-bg: #9a6865;              /* 暖灰粉色 */
+    --pixel-btn-active-text: #FFFFFF;             /* 纯白文字 */
 }

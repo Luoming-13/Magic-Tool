@@ -6,7 +6,6 @@
 /* ===== Card Section ===== */
 .card-section {
     padding: 1.25rem 1.5rem;
-    border-bottom: 3px solid var(--pixel-border-divider);
 }
 
 .card-section:last-child {
@@ -26,7 +25,7 @@
 /* ===== Upload Zone in Card ===== */
 .card-section .upload-zone {
     border-color: var(--pixel-border);
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
 }
 
 .card-section .upload-zone:hover {
@@ -36,7 +35,7 @@
 
 /* ===== Control Group in Card ===== */
 .card-section .control-group__input {
-    background: var(--pixel-bg-card);
+    background: #FFFDF5;
     border-color: var(--pixel-border);
 }
 
@@ -147,7 +146,7 @@
     font-size: 0.8125rem;
     font-weight: 700;
     color: var(--pixel-text-secondary);
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 2px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     cursor: pointer;
@@ -178,7 +177,7 @@
     font-size: 0.875rem;
     font-weight: 700;
     color: var(--pixel-text-secondary);
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 2px solid var(--pixel-border);
     border-radius: var(--pixel-radius-md);
     cursor: pointer;
@@ -276,7 +275,7 @@
         linear-gradient(-45deg, transparent 75%, #e0d6ca 75%);
     background-size: 16px 16px;
     background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
-    background-color: var(--pixel-bg-card);
+    background-color: var(--pixel-card-bg);
 }
 
 .pixel-preview-wrapper {
@@ -307,7 +306,7 @@
     display: none;
     gap: 1.5rem;
     padding: 1.5rem;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 3px solid var(--pixel-border);
     border-radius: var(--pixel-radius-lg);
     align-items: center;
@@ -449,7 +448,7 @@
 .add-color-btn {
     width: 28px;
     height: 28px;
-    background: var(--pixel-bg-card);
+    background: var(--pixel-card-bg);
     border: 2px dashed var(--pixel-border);
     border-radius: var(--pixel-radius-sm);
     cursor: pointer;

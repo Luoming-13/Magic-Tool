@@ -17,22 +17,22 @@
             theme: {
                 extend: {
                     colors: {
-                        /* 温暖太妃棕配色方案 - 统一设计系统 */
-                        'pixel-bg': '#E8DCD0',
-                        'pixel-bg-card': '#E8DCD0',
-                        'pixel-panel': '#F6F0E8',
-                        'pixel-border': '#AC927A',
-                        'pixel-border-divider': '#C9B8A8',
-                        'pixel-text': '#2C1810',
-                        'pixel-text-secondary': '#5C3D2E',
-                        'pixel-text-muted': '#8B6B5A',
-                        'pixel-primary': '#B8844A',
-                        'pixel-primary-dark': '#8A6538',
-                        'pixel-accent': '#8B6B8B',
-                        'pixel-accent-dark': '#6B4F6B',
+                        /* 动物森友会风格配色 */
+                        'pixel-bg': '#daefdc',
+                        'pixel-bg-card': '#FFF8E7',
+                        'pixel-panel': '#FFF8E7',
+                        'pixel-border': '#D4C4B0',
+                        'pixel-border-divider': '#E8D8C8',
+                        'pixel-text': '#2B4A6A',
+                        'pixel-text-secondary': '#5A7A9A',
+                        'pixel-text-muted': '#8AA5B5',
+                        'pixel-primary': '#9a6865',
+                        'pixel-primary-dark': '#7d5551',
+                        'pixel-accent': '#F4CDB8',
+                        'pixel-accent-dark': '#E8B89A',
                         'pixel-success': '#7A9B6B',
-                        'pixel-warning': '#D4954B',
-                        'pixel-error': '#B85A52',
+                        'pixel-warning': '#E8B86D',
+                        'pixel-error': '#D4756A',
                     },
                     fontFamily: {
                         'display': ['Fredoka', 'sans-serif'],
@@ -40,24 +40,31 @@
                         'body': ['Nunito', 'sans-serif'],
                     },
                     boxShadow: {
-                        'pixel-sm': '2px 2px 0 rgba(44, 24, 16, 0.10)',
-                        'pixel-md': '4px 4px 0 rgba(44, 24, 16, 0.15)',
-                        'pixel-lg': '6px 6px 0 rgba(44, 24, 16, 0.20)',
+                        'pixel-sm': '2px 2px 0 rgba(180, 160, 130, 0.15)',
+                        'pixel-md': '4px 4px 0 rgba(180, 160, 130, 0.20)',
+                        'pixel-lg': '6px 6px 0 rgba(180, 160, 130, 0.25)',
+                        'pixel-card': '0 8px 32px rgba(180, 140, 100, 0.25)',
                     }
                 }
             }
         }
     </script>
     <style>
-        /* 像素网格背景 */
-        .pixel-bg-grid {
-            background-image:
-                linear-gradient(rgba(201, 149, 108, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(201, 149, 108, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
+/* 隐藏滚动条 */
+html {
+    scrollbar-width: none;           /* Firefox */
+    -ms-overflow-style: none;       /* IE/Edge legacy */
+}
 
-        /* 动画 */
+html::-webkit-scrollbar {
+    display: none;                  /* Chrome/Safari/Edge */
+}
+
+body::-webkit-scrollbar {
+    display: none;                  /* Chrome/Safari/Edge */
+}
+
+/* 动画 */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -78,10 +85,67 @@
         .animate-fadeInUp-delay-2 { animation: fadeInUp 0.6s ease 0.3s backwards; }
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-bounceIn { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+
+        /* 功能卡片 - 动物森友会风格 */
+        .feature-card {
+            background: #FFF8E7;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(180, 140, 100, 0.25);
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 3px dashed #F4CDB8;
+            border-radius: calc(1.5rem - 8px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .feature-card:hover {
+            transform: scale(1.05);
+        }
+
+        .feature-card__title {
+            font-family: 'Quicksand', 'Nunito', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #1a4875;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+
+        .feature-card__icon {
+            color: #5BA88F;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .feature-card:hover .feature-card__icon {
+            transform: scale(1.1);
+        }
+
+        /* 波浪边框 */
+        .waviy {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            background-color: #aedaaf;
+        }
+
+        .waviy svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 40px;
+        }
     </style>
     <link rel="stylesheet" href="css/share.css">
 </head>
-<body class="min-h-screen bg-pixel-bg text-pixel-text pixel-bg-grid relative overflow-x-hidden">
+<body class="min-h-screen text-pixel-text relative overflow-x-hidden" style="background-color: #fdf4d7;">
     <!-- 分享按钮 -->
     <button class="share-btn" id="shareBtn" title="分享">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,85 +164,84 @@
         </svg>
     </button>
 
-    <!-- 主内容 -->
-    <main class="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12 min-h-screen flex flex-col">
-        <!-- 品牌区域 -->
-        <section class="text-center py-8 sm:py-16 animate-fadeInUp">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 animate-float text-pixel-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                    <path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
-                </svg>
+    <!-- 品牌区域 -->
+    <section class="text-center py-8 sm:py-16 animate-fadeInUp" style="background-color: #aedaaf;">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 animate-float text-pixel-primary" style="color: #499e91;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                <path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
+            </svg>
+        </div>
+        <div class="flex justify-center mb-3">
+            <div class="flex items-end">
+                <h1 class="font-display text-6xl sm:text-8xl font-bold leading-none" data-i18n="appName" style="color: #ffffff;">Magic Pixel</h1>
+                <span class="font-heading text-xs font-extrabold px-2 py-0.5 rounded-full ml-2" style="background-color: #5BA88F; color: white; letter-spacing: 1px;">V1</span>
             </div>
-            <div class="flex justify-center mb-3">
-                <div class="flex items-end">
-                    <h1 class="font-display text-6xl sm:text-8xl text-pixel-text font-bold leading-none" data-i18n="appName">Magic Pixel</h1>
-                    <span class="font-heading text-xs font-extrabold px-2 py-0.5 rounded-full ml-2" style="background-color: #B35D33; color: white; letter-spacing: 1px;">V1</span>
-                </div>
-            </div>
-            <p class="font-heading text-base sm:text-lg text-pixel-text-secondary mb-4 font-semibold">像素魔法工具箱</p>
-            <p class="text-sm sm:text-base text-pixel-text-secondary max-w-md mx-auto font-semibold">简单、高效的在线图片处理工具集</p>
-        </section>
+        </div>
+        <p class="font-heading text-base sm:text-lg text-pixel-text-secondary mb-4 font-semibold">像素魔法工具箱</p>
+        <p class="text-sm sm:text-base text-pixel-text-secondary max-w-md mx-auto font-semibold">简单、高效的在线图片处理工具集</p>
+    </section>
 
+    <!-- 波浪边框 -->
+    <div class="waviy">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path fill="#fdf4d7" d="M0,40 C120,80 240,0 360,40 C480,80 600,0 720,40 C840,80 960,0 1080,40 C1200,80 1320,0 1440,40 L1440,80 L0,80 Z"></path>
+        </svg>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12 flex flex-col">
         <!-- 功能卡片区域 -->
-        <section class="mt-6 sm:mt-12 animate-fadeInUp-delay">
+        <section class="mt-2 sm:mt-4 animate-fadeInUp-delay" style="background-color: #fdf4d7;">
             <h2 class="font-heading text-xs text-pixel-text-muted text-center mb-6 font-semibold tracking-wide">SELECT TOOL</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
                 <!-- Magic Cutting -->
-                <a href="pages/cutting.html" class="group flex flex-col items-center justify-center gap-4 p-8 bg-pixel-panel border-3 border-pixel-border rounded-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-pixel-lg relative overflow-hidden no-underline text-pixel-text"
-                   style="border-width: 3px;">
-                    <div class="absolute top-0 left-0 right-0 h-1" style="background-color: #B35D33;"></div>
-                    <svg class="w-12 h-12" style="color: #B35D33;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="pages/cutting.html" class="feature-card group flex flex-col items-center justify-center gap-4 p-8 overflow-hidden no-underline">
+                    <svg class="feature-card__icon w-12 h-12" style="color: #5BA88F;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.5 17.5L3 6V3h3l11.5 11.5"/>
                         <path d="M13 19l6-6"/>
                         <path d="M16 16l4 4"/>
                         <path d="M19 21l2-2"/>
                     </svg>
-                    <h3 class="font-heading text-xl sm:text-2xl text-pixel-text font-extrabold text-center">Magic Cutting</h3>
+                    <h3 class="feature-card__title">Magic Cutting</h3>
                 </a>
 
                 <!-- Sprite Sheet -->
-                <a href="pages/sprite-sheet.html" class="group flex flex-col items-center justify-center gap-4 p-8 bg-pixel-panel border-3 border-pixel-border rounded-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-pixel-lg relative overflow-hidden no-underline text-pixel-text"
-                   style="border-width: 3px;">
-                    <div class="absolute top-0 left-0 right-0 h-1" style="background-color: #B35D33;"></div>
-                    <svg class="w-12 h-12" style="color: #B35D33;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="pages/sprite-sheet.html" class="feature-card group flex flex-col items-center justify-center gap-4 p-8 overflow-hidden no-underline">
+                    <svg class="feature-card__icon w-12 h-12" style="color: #5BA88F;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="6" y1="12" x2="10" y2="12"/>
                         <line x1="8" y1="10" x2="8" y2="14"/>
                         <line x1="15" y1="13" x2="15.01" y2="13"/>
                         <line x1="18" y1="11" x2="18.01" y2="11"/>
                         <rect x="2" y="6" width="20" height="12" rx="2"/>
                     </svg>
-                    <h3 class="font-heading text-xl sm:text-2xl text-pixel-text font-extrabold text-center">Sprite Sheet</h3>
+                    <h3 class="feature-card__title">Sprite Sheet</h3>
                 </a>
 
                 <!-- Image to Pixel -->
-                <a href="pages/image-to-pixel.html" class="group flex flex-col items-center justify-center gap-4 p-8 bg-pixel-panel border-3 border-pixel-border rounded-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-pixel-lg relative overflow-hidden no-underline text-pixel-text"
-                   style="border-width: 3px;">
-                    <div class="absolute top-0 left-0 right-0 h-1" style="background-color: #B35D33;"></div>
-                    <svg class="w-12 h-12" style="color: #B35D33;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="pages/image-to-pixel.html" class="feature-card group flex flex-col items-center justify-center gap-4 p-8 overflow-hidden no-underline">
+                    <svg class="feature-card__icon w-12 h-12" style="color: #5BA88F;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"/>
                         <rect x="14" y="3" width="7" height="7"/>
                         <rect x="14" y="14" width="7" height="7"/>
                         <rect x="3" y="14" width="7" height="7"/>
                     </svg>
-                    <h3 class="font-heading text-xl sm:text-2xl text-pixel-text font-extrabold text-center">Image to Pixel</h3>
+                    <h3 class="feature-card__title">Image to Pixel</h3>
                 </a>
 
                 <!-- Background Remover -->
-                <a href="pages/background-remover.html" class="group flex flex-col items-center justify-center gap-4 p-8 bg-pixel-panel border-3 border-pixel-border rounded-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-pixel-lg relative overflow-hidden no-underline text-pixel-text"
-                   style="border-width: 3px;">
-                    <div class="absolute top-0 left-0 right-0 h-1" style="background-color: #B35D33;"></div>
-                    <svg class="w-12 h-12" style="color: #B35D33;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="pages/background-remover.html" class="feature-card group flex flex-col items-center justify-center gap-4 p-8 overflow-hidden no-underline">
+                    <svg class="feature-card__icon w-12 h-12" style="color: #5BA88F;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
                         <circle cx="12" cy="13" r="3"/>
                     </svg>
-                    <h3 class="font-heading text-xl sm:text-2xl text-pixel-text font-extrabold text-center">背景移除</h3>
+                    <h3 class="feature-card__title">背景移除</h3>
                 </a>
             </div>
         </section>
 
 <!-- 页脚 -->
-        <footer class="text-center py-8 border-t-3 border-pixel-border-divider mt-8" style="border-top-width: 3px;">
+        <footer class="text-center py-8 mt-8" style="background-color: #fdf4d7;">
             <p class="text-sm text-pixel-text-muted font-semibold">&copy; 2024 Magic Pixel. All rights reserved.</p>
         </footer>
     </main>
