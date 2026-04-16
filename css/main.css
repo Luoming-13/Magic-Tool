@@ -167,7 +167,7 @@ h4, .title-sm {
     font-family: var(--font-display);
     font-size: 3rem;
     font-weight: var(--font-bold);
-    color: #FFFFFF;
+    color: #FEF8E8;
     line-height: 1.1;
     margin: 0;
 }
@@ -177,7 +177,7 @@ h4, .title-sm {
     font-family: var(--font-heading);
     font-size: 1.125rem;
     font-weight: var(--font-semibold);
-    color: #fdf4d7;
+    color: #FEF8E8;
     margin-top: 0.25rem;
     letter-spacing: 0.05em;
 }

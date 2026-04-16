@@ -26,33 +26,6 @@
     font-weight: 600;
 }
 
-.zoom-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 80px;
-    height: 6px;
-    background: var(--pixel-border);
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-}
-
-.zoom-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    background: var(--pixel-primary);
-    border: 2px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 2px 2px 0 rgba(45, 31, 61, 0.2);
-    transition: all var(--pixel-transition);
-}
-
-.zoom-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-}
 
 .zoom-control__value {
     font-size: 0.75rem;
@@ -211,11 +184,11 @@
 .control-card::before {
     content: '';
     position: absolute;
-    inset: 60px 8px 8px 8px;
+    inset: 8px;
     border: 3px dashed var(--pixel-border-dashed);
     border-radius: calc(var(--pixel-card-radius, 16px) - 8px);
     pointer-events: none;
-    z-index: 1;
+    z-index: 5;
 }
 
 /* ===== Mode Navigation ===== */
@@ -223,7 +196,6 @@
     display: flex;
     margin: var(--pixel-card-border-offset);
     margin-bottom: 0;
-    border-bottom: 3px dashed var(--pixel-card-border-dashed);
     border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
     overflow: hidden;
 }
@@ -246,15 +218,10 @@
     font-weight: 700;
     position: relative;
     margin-bottom: -3px;
-    z-index: 2;
 }
 
 .mode-nav__btn:hover {
     color: var(--pixel-primary);
-}
-
-.mode-nav__btn:hover::before {
-    opacity: 1;
     background: rgba(154, 104, 101, 0.1);
 }
 
@@ -265,25 +232,7 @@
 
 .mode-nav__btn--active {
     color: var(--pixel-primary);
-    border-bottom-color: var(--pixel-primary);
-}
-
-.mode-nav__btn--active::before {
-    opacity: 1;
-    background: rgba(154, 104, 101, 0.15);
-}
-
-/* 模式按钮圆角背景伪元素 */
-.mode-nav__btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    bottom: -3px;
-    background: transparent;
-    opacity: 0;
-    transition: background var(--pixel-transition), opacity var(--pixel-transition);
-    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
-    z-index: -1;
+    background: #F8EAD7;
 }
 
 /* ===== Card Section ===== */
@@ -324,11 +273,6 @@
 
 .card-section .control-group__input:focus {
     border-color: var(--pixel-primary);
-}
-
-/* ===== Slider in Card ===== */
-.card-section .slider {
-    background: var(--pixel-border);
 }
 
 /* ===== Radio Group in Card ===== */

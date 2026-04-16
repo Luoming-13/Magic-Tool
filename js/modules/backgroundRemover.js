@@ -1,5 +1,5 @@
 /**
- * Magic Pixel - 背景移除模块
+ * Magic Pixel - BG Remover模块
  *
  * 基于颜色差异的自动抠图功能
  */

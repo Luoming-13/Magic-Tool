@@ -62,8 +62,8 @@
     appearance: none;
     width: 80px;
     height: 6px;
-    background: var(--pixel-slider-track);
-    border-radius: 9999px;
+    background: var(--pixel-border);
+    border-radius: 3px;
     outline: none;
     cursor: pointer;
 }
@@ -71,28 +71,28 @@
 .zoom-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
-    background: white;
-    border: none;
+    width: 16px;
+    height: 16px;
+    background: var(--pixel-primary);
+    border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: 2px 2px 0 rgba(45, 31, 61, 0.2);
     transition: all var(--pixel-transition);
 }
 
 .zoom-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
 }
 
 .zoom-slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    background: white;
-    border: none;
+    width: 16px;
+    height: 16px;
+    background: var(--pixel-primary);
+    border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: 2px 2px 0 rgba(45, 31, 61, 0.2);
 }
 
 .zoom-control__value {
@@ -256,9 +256,9 @@
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 8px;
-    background: var(--pixel-slider-track);
-    border-radius: 9999px;
+    height: 6px;
+    background: var(--pixel-border);
+    border-radius: 3px;
     outline: none;
     cursor: pointer;
 }
@@ -268,27 +268,26 @@
     appearance: none;
     width: 16px;
     height: 16px;
-    background: white;
-    border: none;
+    background: var(--pixel-primary);
+    border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: 2px 2px 0 rgba(45, 31, 61, 0.2);
     transition: all var(--pixel-transition);
 }
 
 .slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transform: scale(1.15);
 }
 
 .slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
-    background: white;
-    border: none;
+    background: var(--pixel-primary);
+    border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: 2px 2px 0 rgba(45, 31, 61, 0.2);
 }
 
 /* ===== Slider Limit ===== */
@@ -362,22 +361,27 @@
     height: 16px;
 }
 
-/* 主要按钮 - 立体感 */
+/* 主要按钮 - 立体感（暖橙色系） */
 .btn--primary {
-    background: var(--pixel-slider-track);
-    color: white;
-    border-color: var(--pixel-primary-dark);
+    background: #C4866A;
+    color: #FFFDF5;
+    border: 3px solid #A87660;
     box-shadow: var(--pixel-shadow-md);
     transform: translateY(0);
 }
 
 .btn--primary:hover:not(:disabled) {
-    background: var(--pixel-primary-dark);
+    background: #A06850;
+    color: #FFFDF5;
+    border: 3px solid #805848;
     transform: translateY(-2px);
     box-shadow: var(--pixel-shadow-lg);
 }
 
 .btn--primary:active:not(:disabled) {
+    background: #8A5848;
+    color: #FFFDF5;
+    border: 3px solid #6A4838;
     transform: translateY(2px);
     box-shadow: 2px 2px 0 rgba(45, 31, 61, 0.15);
 }
@@ -602,7 +606,7 @@
     border: 3px dashed var(--pixel-card-border-dashed);
     border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset));
     pointer-events: none;
-    z-index: 1;
+    z-index: 5;
 }
 
 .control-card__header {
@@ -771,15 +775,10 @@
     font-weight: 700;
     position: relative;
     margin-bottom: -3px;
-    z-index: 2;
 }
 
 .mode-nav__btn:hover {
     color: var(--pixel-primary);
-}
-
-.mode-nav__btn:hover::before {
-    opacity: 1;
     background: rgba(154, 104, 101, 0.1);
 }
 
@@ -790,25 +789,7 @@
 
 .mode-nav__btn--active {
     color: var(--pixel-primary);
-    border-bottom-color: var(--pixel-primary);
-}
-
-.mode-nav__btn--active::before {
-    opacity: 1;
-    background: rgba(154, 104, 101, 0.15);
-}
-
-/* 模式按钮圆角背景伪元素 */
-.mode-nav__btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    bottom: -3px;
-    background: transparent;
-    opacity: 0;
-    transition: background var(--pixel-transition), opacity var(--pixel-transition);
-    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
-    z-index: -1;
+    background: #F8EAD7;
 }
 
 /* ===== Checkbox Wrapper ===== */

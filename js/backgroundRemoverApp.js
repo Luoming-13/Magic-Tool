@@ -1,5 +1,5 @@
 /**
- * Magic Pixel - 背景移除应用主入口
+ * Magic Pixel - BG Remover应用主入口
  *
  * 整合所有模块，实现UI交互逻辑
  */

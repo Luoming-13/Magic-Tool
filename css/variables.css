@@ -3,11 +3,20 @@
    加深版奶油太妃棕配色方案
    ===================== */
 
+/* ===== 自定义字体 ===== */
+@font-face {
+    font-family: 'MaokenTangYuan';
+    src: url('../fonts/猫啃网糖圆体(测试版)0.12.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* ===== 字体 ===== */
     --font-display: 'Fredoka', 'Quicksand', sans-serif;
-    --font-heading: 'Quicksand', 'Nunito', sans-serif;
-    --font-body: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-heading: 'MaokenTangYuan', 'ZCOOL KuaiLe', 'Quicksand', 'Nunito', sans-serif;
+    --font-body: 'MaokenTangYuan', 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
     /* ===== 字体大小 ===== */
     --text-xs: 0.75rem;

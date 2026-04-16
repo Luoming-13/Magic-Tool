@@ -3,10 +3,11 @@
    序列帧标准化重组功能样式
    ===================== */
 
-/* ===== 缝线边框效果 - 顶部留出 mode-nav 空间 ===== */
+/* ===== 缝线边框效果 ===== */
 .control-card::before {
-    inset: 60px 8px 8px 8px;
+    inset: 8px;
     border-radius: calc(var(--pixel-card-radius, 16px) - 8px);
+    z-index: 10;
 }
 
 /* ===== Card Section ===== */
@@ -121,11 +122,6 @@
     border-color: var(--pixel-primary);
 }
 
-/* ===== Slider in Card ===== */
-.card-section .slider {
-    background: var(--pixel-border);
-}
-
 /* ===== Radio Group in Card ===== */
 .card-section .radio-label input[type="radio"] {
     accent-color: var(--pixel-primary);
@@ -141,7 +137,6 @@
     display: flex;
     margin: var(--pixel-card-border-offset);
     margin-bottom: 0;
-    border-bottom: 3px dashed var(--pixel-card-border-dashed);
     border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
     overflow: hidden;
 }
@@ -164,15 +159,10 @@
     font-weight: 700;
     position: relative;
     margin-bottom: -3px;
-    z-index: 2;
 }
 
 .mode-nav__btn:hover {
     color: var(--pixel-primary);
-}
-
-.mode-nav__btn:hover::before {
-    opacity: 1;
     background: rgba(154, 104, 101, 0.1);
 }
 
@@ -183,25 +173,7 @@
 
 .mode-nav__btn--active {
     color: var(--pixel-primary);
-    border-bottom-color: var(--pixel-primary);
-}
-
-.mode-nav__btn--active::before {
-    opacity: 1;
-    background: rgba(154, 104, 101, 0.15);
-}
-
-/* 模式按钮圆角背景伪元素 */
-.mode-nav__btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    bottom: -3px;
-    background: transparent;
-    opacity: 0;
-    transition: background var(--pixel-transition), opacity var(--pixel-transition);
-    border-radius: calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) calc(var(--pixel-card-radius) - var(--pixel-card-border-offset)) 0 0;
-    z-index: -1;
+    background: #F8EAD7;
 }
 
 /* ===== Frame Count ===== */
@@ -439,6 +411,19 @@
     background: var(--pixel-bg-main);
     border: 3px dashed var(--pixel-border-dashed);
     border-radius: var(--pixel-radius-md);
+}
+
+.align-grid .preview-placeholder {
+    width: 100%;
+    height: 100%;
+    min-width: 120px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
 }
 
 .align-grid__item {

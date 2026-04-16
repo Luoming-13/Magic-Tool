@@ -315,57 +315,24 @@ if (document.readyState === 'loading') {
 
 /**
  * Favorite Module
- * 收藏功能模块
+ * 收藏功能模块 - 提示用户手动添加浏览器书签
  */
 const FavoriteModule = {
     _favoriteBtn: null,
-    _storageKey: 'magicPixel_favorites',
 
     init() {
         this._favoriteBtn = document.getElementById('favoriteBtn');
         if (this._favoriteBtn) {
-            this._updateState();
-            this._favoriteBtn.addEventListener('click', () => this.toggle());
+            this._favoriteBtn.addEventListener('click', () => this.showTip());
         }
     },
 
-    isFavorited() {
-        const favorites = this.getFavorites();
-        return favorites.includes(window.location.href);
-    },
+    showTip() {
+        // 检测操作系统，显示相应的快捷键提示
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const shortcut = isMac ? 'Cmd + D' : 'Ctrl + D';
 
-    getFavorites() {
-        try {
-            return JSON.parse(localStorage.getItem(this._storageKey)) || [];
-        } catch {
-            return [];
-        }
-    },
-
-    toggle() {
-        const favorites = this.getFavorites();
-        const url = window.location.href;
-        const index = favorites.indexOf(url);
-
-        if (index === -1) {
-            favorites.push(url);
-            this._favoriteBtn.classList.add('favorite-btn--active');
-            this._favoriteBtn.style.backgroundColor = 'rgba(179, 93, 51, 1)';
-            this._showToast('已添加到收藏');
-        } else {
-            favorites.splice(index, 1);
-            this._favoriteBtn.classList.remove('favorite-btn--active');
-            this._favoriteBtn.style.backgroundColor = '';
-            this._showToast('已取消收藏');
-        }
-
-        localStorage.setItem(this._storageKey, JSON.stringify(favorites));
-    },
-
-    _updateState() {
-        if (this.isFavorited()) {
-            this._favoriteBtn.classList.add('favorite-btn--active');
-        }
+        this._showToast(`请按 ${shortcut} 添加到浏览器收藏`);
     },
 
     _showToast(message) {
@@ -374,16 +341,16 @@ const FavoriteModule = {
         if (toastContainer) {
             const toast = document.createElement('div');
             toast.className = 'toast toast--success';
-            toast.innerHTML = `<span class="toast__icon">✓</span><span class="toast__message">${message}</span>`;
+            toast.innerHTML = `<span class="toast__icon">💡</span><span class="toast__message">${message}</span>`;
             toastContainer.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
+            setTimeout(() => toast.remove(), 3000);
         } else {
             // 简单提示
             const tip = document.createElement('div');
-            tip.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#7A9B6B;color:white;padding:8px 16px;border-radius:8px;font-size:14px;z-index:3000;';
+            tip.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#5BA88F;color:white;padding:8px 16px;border-radius:8px;font-size:14px;z-index:3000;';
             tip.textContent = message;
             document.body.appendChild(tip);
-            setTimeout(() => tip.remove(), 2000);
+            setTimeout(() => tip.remove(), 3000);
         }
     }
 };

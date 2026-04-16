@@ -16,15 +16,15 @@
     height: 44px;
     padding: 0;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
     cursor: pointer;
     transition: all 0.2s ease;
-    background-color: rgba(154, 104, 101, 0.85);
+    background-color: #a37452;
     color: white;
 }
 
 .share-btn:hover {
-    background-color: rgba(154, 104, 101, 1);
+    background-color: #8a6345;
     transform: translateY(-2px);
 }
 
@@ -50,15 +50,15 @@
     height: 44px;
     padding: 0;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
     cursor: pointer;
     transition: all 0.2s ease;
-    background-color: rgba(154, 104, 101, 0.85);
+    background-color: #a37452;
     color: white;
 }
 
 .favorite-btn:hover {
-    background-color: rgba(154, 104, 101, 1);
+    background-color: #8a6345;
     transform: translateY(-2px);
 }
 
@@ -73,7 +73,7 @@
 
 /* 收藏已激活状态 */
 .favorite-btn--active {
-    background-color: rgba(154, 104, 101, 1);
+    background-color: #8a6345;
 }
 
 .favorite-btn--active svg {
